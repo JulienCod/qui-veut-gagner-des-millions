@@ -1,3 +1,15 @@
 controllers:
     resource: ../src/Controller/
     type: attribute
+
+api_register:
+    path: /api/register
+    controller: App\Controller\AuthController::register
+    methods: [POST]
+api_login:
+    path: /api/login
+
+api_logout:
+    path: /api/logout
+    controller: App\Controller\AuthController::logout
+    methods: [POST]
