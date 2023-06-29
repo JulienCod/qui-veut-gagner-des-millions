@@ -1,9 +1,18 @@
-import React from "react";
+// Base.js
 
-export default function Base(){
-    return(
+import React from "react";
+import { Outlet } from "react-router-dom";
+import Header from "../components/header/Header";
+import Footer from "../components/footer/Footer";
+
+export default function Base({isAuthenticated, isGameActive}) {
+    return (
         <>
-            <h1 className="text-red-500 text-center">Bienvenue sur React</h1>
+            <Header isGameActive={isGameActive} isAuthenticated={isAuthenticated} />
+            <main className="container-2xl px-4">
+                <Outlet />
+            </main>
+            <Footer isGameActive={isGameActive}/>
         </>
     );
 }
