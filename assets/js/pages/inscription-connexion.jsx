@@ -34,7 +34,7 @@ export default function InscriptionConnexion(){
                     showConfirmButton: false,
                     timer: 1500
                 })
-                navigate('/jeux');
+               location.href='/jeux';
             } else {
                 // enregistrer et afficher le message d'erreur
                 setErrorMessage(data.message);
@@ -49,11 +49,11 @@ export default function InscriptionConnexion(){
         }
     };
     return (
-        <section className="flex flex-col items-center">
+        <section className="flex flex-col items-center text-white bg-blue-800 m-auto p-4 rounded-lg">
             <h2 className="text-2xl font-bold mb-4">{isRegistering ? 'Inscription' : 'Connexion'}</h2>
             <form onSubmit={handleSubmit} className="w-full max-w-sm">
                 <div className="mb-4">
-                    <label htmlFor="email" className="block text-gray-700">Email</label>
+                    <label htmlFor="email" className="block">Email</label>
                     <input
                         type="email"
                         id="email"
@@ -64,7 +64,7 @@ export default function InscriptionConnexion(){
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="password" className="block text-gray-700">Mot de passe</label>
+                    <label htmlFor="password" className="block">Mot de passe</label>
                     <input
                         type="password"
                         id="password"
@@ -76,7 +76,7 @@ export default function InscriptionConnexion(){
                 </div>
                 {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                     <button
                         type="submit"
                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
@@ -86,7 +86,7 @@ export default function InscriptionConnexion(){
                     <button
                         type="button"
                         onClick={() => setIsRegistering(!isRegistering)}
-                        className="text-sm text-gray-500 hover:text-gray-700 focus:outline-none"
+                        className=" text-sm text-blue-200 hover:text-gray-700 focus:outline-none"
                     >
                         {isRegistering ? 'Déjà un compte ?' : 'Pas encore de compte ?'}
                     </button>

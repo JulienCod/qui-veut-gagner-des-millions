@@ -9,7 +9,7 @@ export default function Base({isAuthenticated, isGameActive}) {
     return (
         <>
             <Header isGameActive={isGameActive} isAuthenticated={isAuthenticated} />
-            <main className="container-2xl px-4">
+            <main className="container-2xl">
                 <Outlet />
             </main>
             <Footer isGameActive={isGameActive}/>

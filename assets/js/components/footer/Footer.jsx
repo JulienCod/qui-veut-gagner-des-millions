@@ -5,8 +5,8 @@ export default function Footer({isGameActive})
     return (
         isGameActive?(null)
             :
-        (<footer className="bg-gray-800 py-4 fixed bottom-0 w-full">
-            <div className="container mx-auto flex items-center justify-between">
+        (<footer className="bg-gray-800 fixed bottom-0 w-full">
+            <div className="container px-4 mx-auto flex items-center justify-between">
                 <div>
                     <div>
                         <a href="https://votre-site.com">
