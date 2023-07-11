@@ -38,6 +38,11 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
       - { path: ^/api/login, roles: PUBLIC_ACCESS }
+      - { path: ^/api/register, roles: PUBLIC_ACCESS }
+      - { path: ^/api/users/*, roles: IS_AUTHENTICATED_FULLY }
+      - { path: ^/api/theme/*, roles: PUBLIC_ACCESS }
+      - { path: ^/api/questions/*, roles: PUBLIC_ACCESS }
+      - { path: ^/api/answers/*, roles: PUBLIC_ACCESS }
       - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

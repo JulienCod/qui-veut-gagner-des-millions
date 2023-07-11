@@ -1,13 +1,14 @@
 import {useEffect, useState} from "react";
 import useSound from "use-sound";
 
-export default function Timer({setTimeOut, questionNumber, level, selectAnswer}){
+export default function Timer({setTimeOut, questionNumber, level, selectAnswer, stop}){
     const [timer, setTimer] = useState(level);
     const [wrongAnswer] = useSound( '../sounds/wrong.mp3');
 
     useEffect(() => {
         if(!selectAnswer){
             if (timer === 0) {
+                stop();
                 wrongAnswer();
                 return setTimeOut(true);
             }

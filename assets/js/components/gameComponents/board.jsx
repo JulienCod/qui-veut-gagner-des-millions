@@ -10,16 +10,17 @@ export default function Board({data, questionNumber, setQuestionNumber, setTimeO
     const [letsPlay] = useSound('../sounds/play.mp3');
     const [correctAnswer] = useSound('../sounds/correct.mp3');
     const [wrongAnswer] = useSound( '../sounds/wrong.mp3');
-    const [wait] = useSound('../sounds/wait.mp3');
+    const [wait, {stop}] = useSound('../sounds/wait.mp3');
 
 
     useEffect(() => {
         letsPlay();
     }, [letsPlay]);
 
-    useEffect(()=>{
+    useEffect(() => {
         wait();
-    },[wait])
+    }, [wait, questionNumber]);
+
 
     useEffect(() => {
         setQuestion(data[questionNumber - 1]);
@@ -51,6 +52,7 @@ export default function Board({data, questionNumber, setQuestionNumber, setTimeO
         delay(5000, () => {
             if (a.correct) {
                 correctAnswer();
+                stop();
                 delay(1000, () => {
                     setQuestionNumber((prev) => prev + 1);
                     if(questionNumber === 15){
@@ -61,6 +63,7 @@ export default function Board({data, questionNumber, setQuestionNumber, setTimeO
                 });
             } else {
                 wrongAnswer();
+                stop();
                 delay(1000, () => {
                     setTimeOut(true);
                 });
@@ -77,6 +80,7 @@ export default function Board({data, questionNumber, setQuestionNumber, setTimeO
                         questionNumber={questionNumber}
                         level={45}
                         selectAnswer={selectAnswer}
+                        stop={stop}
                     />
                 </div>
             </div>
@@ -87,14 +91,14 @@ export default function Board({data, questionNumber, setQuestionNumber, setTimeO
                     <div className="w-full flex justify-center flex-wrap ">
                         {question?.answers.map((a, index) => (
                             <div
-                                key={a.id}
+                                key={index}
                                 className={selectedAnswer === a ? className : "min-w-[calc(50%-2rem)] flex-1 p-5 m-4 " +
                                     " bg-gradient-to-b from-[#0a0122] to-[#1b063d] border border-white rounded-lg" +
                                     " font-light text-lg cursor-pointer hover:bg-mediumblue "}
 
                                 onClick={() => !selectedAnswer && handleClick(a) }
                             >
-                                <span className="text-orange-500">{String.fromCharCode(65 + index)}:</span> &emsp; <span>{a.text}</span>
+                                <span className="text-orange-500">{String.fromCharCode(65 + index)}:</span> &emsp; <span>{a.answer}</span>
                             </div>
                         ))}
                     </div>

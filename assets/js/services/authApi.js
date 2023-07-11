@@ -12,8 +12,8 @@ class AuthApi
             // Décoder le token JWT pour obtenir les informations de l'utilisateur
             const decodedToken = jwt_decode(token);
             // Vérifier si le token contient les informations du rôle de l'utilisateur
-            if (decodedToken && decodedToken.role) {
-                return decodedToken.role;
+            if (decodedToken && decodedToken.roles) {
+                return decodedToken.roles[0];
             }
         }
         return null;
@@ -33,7 +33,7 @@ class AuthApi
     return false;
 }
 
-    static logout() {
+    static async logout() {
         localstorage.removeToken("token");
     }
 }

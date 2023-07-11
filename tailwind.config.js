@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+
 module.exports = {
   content: [
     'templates/**/*.html.twig',
@@ -22,6 +23,10 @@ module.exports = {
           '20%, 40%, 60%': { background: 'linear-gradient(#0e0124, #22074d)' },
           '62%, 100%': { background: 'crimson' },
         },
+      },
+      locked: {
+        opacity:0.6,
+        pointerEvents: 'none',
       },
     },
   },

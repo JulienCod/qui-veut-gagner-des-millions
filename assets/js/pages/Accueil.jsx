@@ -1,11 +1,10 @@
 import React from "react";
-import InscriptionConnexion from "./inscription-connexion";
 
 export default function Accueil() {
 
     return (
         <>
-            <InscriptionConnexion />
+            <h1 className="text-white text-center">Qui veut gagner des Millions</h1>
         </>
     );
 }

@@ -5,11 +5,11 @@ import { Outlet } from "react-router-dom";
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
 
-export default function Base({isAuthenticated, isGameActive}) {
+export default function Base({isAuthenticated, isGameActive, admin}) {
     return (
         <>
-            <Header isGameActive={isGameActive} isAuthenticated={isAuthenticated} />
-            <main className="container-2xl">
+            <Header isGameActive={isGameActive} isAuthenticated={isAuthenticated} admin={admin} />
+            <main className={isGameActive?"h-[100%] container-2xl" :"container-2xl"}>
                 <Outlet />
             </main>
             <Footer isGameActive={isGameActive}/>
