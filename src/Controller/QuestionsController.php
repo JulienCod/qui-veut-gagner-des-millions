@@ -29,7 +29,7 @@ class QuestionsController extends AbstractController
 
         $errors = [];
         $createdQuestions = [];
-
+        
         foreach ($data as $questionData) {
             $theme = $this->entityManager->getRepository(Theme::class)->find($questionData['theme']);
 

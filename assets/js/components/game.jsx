@@ -11,14 +11,16 @@ export default function Game({ onGameActiveChange }) {
   const [data, setData] = useState([]);
   const [dataTheme, setDataTheme] = useState([]);
   const [token] = useState(AuthApi.getToken());
+  const [currentAccount] = useState(JSON.parse(localStorage.getItem('currentAccount')));
 
+  
   useEffect(() => {
     getDataTheme();
-  }, []);
+  }, [currentAccount]);
 
   const getDataTheme = async () => {
       try {
-      const response = await fetch("api/theme/getAll", {
+      const response = await fetch(`api/theme/getAll/${currentAccount.id}`, {
         method: "GET",
         headers: {
           "Content-type": "application/json",
@@ -28,7 +30,6 @@ export default function Game({ onGameActiveChange }) {
       const data = await response.json();
       if (response.ok) {
         setDataTheme(data.themes);
-        console.log(data.themes);
       }
     } catch (error) {
       console.error(error.message);
@@ -38,7 +39,7 @@ export default function Game({ onGameActiveChange }) {
   const choiceTheme = async (themeId) => {
     try {
       const token = AuthApi.getToken();
-      const response = await fetch("/api/theme/get/" + `${themeId}`, {
+      const response = await fetch("/api/theme/get/" + `${themeId}?accountId=${currentAccount.id}`, {
         method: "GET",
         headers: {
           "Content-type": "application/json",
@@ -127,7 +128,10 @@ export default function Game({ onGameActiveChange }) {
       ) : (
         <div className="p-4 mx-auto">
           <div className="text-center">
-            <h2 className="text-2xl p-4">Thèmes</h2>
+            {currentAccount&&
+            <h2>Vous êtes connecter sur le profil de {currentAccount.name}</h2>
+            }
+            <h3 className="text-2xl p-4">Thèmes</h3>
             <div className="flex gap-4 justify-center">
               {dataTheme.map((t) => (
                 <button

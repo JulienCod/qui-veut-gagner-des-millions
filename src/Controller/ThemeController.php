@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Theme;
+use App\Repository\AccountRepository;
 use App\Repository\ThemeRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -11,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Serializer\Encoder\JsonDecode;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/theme', name: 'app_theme_')]
@@ -23,8 +25,7 @@ class ThemeController extends AbstractController
         ThemeRepository $themeRepository,
         TokenStorageInterface $tokenStorage,
         EntityManagerInterface $entityManager,
-    )
-    {
+    ) {
         $this->themeRepository = $themeRepository;
         $this->tokenStorage = $tokenStorage;
         $this->entityManager = $entityManager;
@@ -33,10 +34,9 @@ class ThemeController extends AbstractController
     public function addTheme(
         Request $request,
         ValidatorInterface $validator,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         // récupération des données de création d'un thème
-        $data = json_decode($request->getContent(),true);
+        $data = json_decode($request->getContent(), true);
 
         // création d'un nouveau thème
         $theme = new Theme();
@@ -45,10 +45,10 @@ class ThemeController extends AbstractController
 
         //valider les données du theme
         $errors = $validator->validate($theme);
-        if (count($errors) > 0){
+        if (count($errors) > 0) {
             // il y a des erreurs de validation
             $errorsMessages = [];
-            foreach ($errorsMessages as $error){
+            foreach ($errorsMessages as $error) {
                 $errorMessage = $error->getMessage();
             }
             return new JsonResponse(['message' => $errorMessage], JsonResponse::HTTP_BAD_REQUEST);
@@ -56,7 +56,7 @@ class ThemeController extends AbstractController
 
         // vérifier si le theme existe déjà
         $existingTheme = $this->themeRepository->findOneBy(['name' => $data['name']]);
-        if ($existingTheme){
+        if ($existingTheme) {
             //le theme existe déjà, renvoi une réponse d'erreur
             return new JsonResponse(['message' => 'Le theme existe déjà'], JsonResponse::HTTP_CONFLICT);
         }
@@ -71,22 +71,34 @@ class ThemeController extends AbstractController
     #[Route('/get/{id}', name: 'show', methods: ['GET'])]
     public function getTheme(
         $id,
-        UserRepository $userRepository
+        Request $request,
+        AccountRepository $accountRepository,
     ): JsonResponse {
-        // recherche du theme par l'identifiant passé en paramètre
-        $theme = $this->themeRepository->find($id);
-        if (!$theme) {
-            return $this->json(['message' => 'Le thème demandé n\'existe pas'], JsonResponse::HTTP_NOT_FOUND);
+        // récupération de l'identifiant du compte passé en paramètre
+        $accountId = $request->query->get('accountId');
+        // recherche du compte dans la base de données
+        $account = $accountRepository->find($accountId);
+
+        // contrôle si le compte existe
+        if(!$account){
+            return new JsonResponse(['message' => 'Le compte n\'existe pas'], JsonResponse::HTTP_NOT_FOUND);
         }
 
         // récupération de l'identifiant de l'utilisateur courant par le token
         $currentUser = $this->tokenStorage->getToken()->getUser()->getId();
 
-        // on recherche les informations de l'utilisateur dans la base de données
-        $user = $userRepository->find($currentUser);
+        // on vérifie que l'identifiant utilisateur du compte correspond bien à l'identifiant de l'utilisateur courant dans le token
+        if($account->getUser()->getId() != $currentUser) {
+            return new JsonResponse(['message' => 'Vous n\'avez pas accès à ce compte'], JsonResponse::HTTP_FORBIDDEN);
+        }
 
+        // recherche du theme par l'identifiant passé en paramètre
+        $theme = $this->themeRepository->find($id);
+        if (!$theme) {
+            return $this->json(['message' => 'Le thème demandé n\'existe pas'], JsonResponse::HTTP_NOT_FOUND);
+        }
         // Création d'un tableau d'identifiants de thèmes accessibles par l'utilisateur
-        $themeIds = $user->getThemeId()->map(fn($theme) => $theme->getId())->toArray();
+        $themeIds = $account->getThemeId()->map(fn ($theme) => $theme->getId())->toArray();
 
         // Contrôle que l'utilisateur a accès au thème
         if (!in_array($id, $themeIds)) {
@@ -131,20 +143,37 @@ class ThemeController extends AbstractController
 
         return new JsonResponse($questionsWithAnswers, JsonResponse::HTTP_OK);
     }
-    #[Route('/getAll', name: 'getAll', methods: ['GET'])]
-    public function getAll(): JsonResponse
+    #[Route('/getAll/{id}', name: 'getAllAccountId', methods: ['GET'])]
+    public function getAllAccountID(
+        $id,
+        AccountRepository $accountRepository): JsonResponse
     {
+
+        // récupération de l'identifiant de l'utilisateur courant dans le token
         $currentUser = $this->tokenStorage->getToken()->getUser()->getId();
-        $datas = $this->themeRepository->findAll();;
+        // récupération du profil passé en paramètre
+        $account = $accountRepository->find($id);
+
+        // si le profil n'existe pas
+        if(!$account){
+            return new JsonResponse(['message' => 'Le profil demandé n\existe pas'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        // on vérifie que l'identifiant utilisateur du compte correspond bien à l'identifiant de l'utilisateur courant dans le token
+        if($account->getUser()->getId() != $currentUser) {
+            return new JsonResponse(['message' => 'Vous n\'avez pas accès à ce compte'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        $datas = $this->themeRepository->findAll();
         $themes = [];
         foreach ($datas as $data) {
-            $users = [];
-            foreach ($data->getUsers() as $user) {
-                $users[] = [
-                    'id' => $user->getId()
+            $accounts = [];
+            foreach ($data->getAccounts() as $account) {
+                $accounts[] = [
+                    'id' => $account->getId()
                 ];
             }
-            $isActive = in_array($currentUser, array_column($users, 'id'));
+            $isActive = in_array($currentUser, array_column($accounts, 'id'));
             $themes[] = [
                 'id' => $data->getId(),
                 'name' => $data->getName(),
@@ -155,16 +184,74 @@ class ThemeController extends AbstractController
         return new JsonResponse(['themes' => $themes], JsonResponse::HTTP_OK);
     }
 
-    #[Route('/delete/{id}',name:'delete', methods:['DELETE'])]
-    public function delete($id):JsonResponse
+    #[Route('/delete/{id}', name:'delete', methods:['DELETE'])]
+    public function delete($id): JsonResponse
     {
         $theme = $this->entityManager->getRepository(Theme::class)->find($id);
-        if (!$theme){
+        if (!$theme) {
             return new JsonResponse(['message' => 'Le thème demandé n\'a pas été trouvé'], JsonResponse::HTTP_NOT_FOUND);
         }
         $this->entityManager->remove($theme);
-        $this->cache->invalidateTags(["themes_all"]);
 
         return new JsonResponse(null, JsonResponse::HTTP_OK);
+    }
+
+    #[Route("/buy/{id}", name:"buy", methods:['POST'])]
+    public function buy(
+        $id,
+        Request $request,
+        AccountRepository $accountRepository
+    ): JsonResponse {
+        // récupération du thème
+        $theme = $this->themeRepository->find($id);
+
+        // contrôle si le thème existe
+        if (!$theme) {
+            return new JsonResponse(['message' => 'Le thème n\'existe pas'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        // récupération de l'identifiant de l'utilisateur courant présent dans le token
+        $currentUser = $this->tokenStorage->getToken()->getUser()->getId();
+
+        // récupération des datas envoyé par le front
+        $data = json_decode($request->getContent(), true);
+
+        // on récupére le compte à partir de la requête du front
+        $account = $accountRepository->find($data['profileId']);
+
+        // on vérifie que le compte existe en base de données
+        if(!$account) {
+            return new JsonResponse(['message' => 'Le compte n\'éxiste pas'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        // on vérifie que l'identifiant utilisateur du compte correspond bien à l'identifiant de l'utilisateur courant dans le token
+        if($account->getUser()->getId() != $currentUser) {
+            return new JsonResponse(['message' => 'Vous n\'avez pas accès à ce compte'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        // si le compte ne dispose pas de suffisament d'argent l'achat ne peut pas être effectué
+        if($account->getWallet() < $theme->getValue()) {
+            return new JsonResponse(['message' => 'Vous n\'avez pas assez d\'argent pour acheter ce thème'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // Vérifier si le compte dispose déjà du thème
+        $themes = $account->getThemeId();
+        if ($themes->contains($theme)) {
+            return new JsonResponse(['message' => 'Le compte dispose déjà de ce thème'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // calcul du reste du solde pour le profil
+        $newWallet = $account->getWallet() - $theme->getValue();
+
+        // ajouter le thème au compte
+        $account->addThemeId($theme);
+
+        // mettre à jour le solde du compte
+        $account->setWallet($newWallet);
+
+        $this->entityManager->persist($account);
+        $this->entityManager->flush();
+
+        return new JsonResponse(['message' => 'Achat du thème bien effectué'], JsonResponse::HTTP_OK);
     }
 }

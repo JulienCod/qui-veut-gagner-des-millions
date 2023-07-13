@@ -45,8 +45,6 @@ class AuthController extends AbstractController
         $user->setEmail($data['email']);
         $user->setRoles(['ROLE_USER']);
         $user->setPassword($data['password']);
-        $user->setWallet(0);
-        $user->addThemeId($theme);
         // Valider les données d'inscription
         $errors = $validator->validate($user);
         if (count($errors) > 0) {

@@ -42,6 +42,9 @@ export default function Header({isGameActive, isAuthenticated, admin})
                                     <Link to='/jeux'>Jeux</Link>
                                 </li>
                                 <li>
+                                    <Link to='/compte'>Compte</Link>
+                                </li>
+                                <li>
                                     <button onClick={logout}>Deconnexion</button>
                                 </li>
                             </>

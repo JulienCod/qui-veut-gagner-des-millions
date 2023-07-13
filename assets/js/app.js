@@ -14,6 +14,8 @@ import { AuthProvider } from "./context/AuthContext";
 import AuthApi from "./services/authApi";
 import Game from "./components/game";
 import Admin from "./pages/admin/admin";
+import AccountIndex from "./components/account/accountIndex";
+import Profile from "./components/account/profile";
 
 function Main() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -60,10 +62,14 @@ function Main() {
               <Route path={"/admin"} element={<Navigate to="/" />} />
             )}
             {isAuthenticated ? (
+              <>
+              <Route path="/compte" element={<AccountIndex />} />
+              <Route path="/compte/profil/:id" element={<Profile />}/>
               <Route
                 path="/jeux"
                 element={<Game onGameActiveChange={handleGameActiveChange} />}
-              />
+                />
+              </>
             ) : (
               <Route path={"/jeux"} element={<Navigate to="/" />} />
             )}

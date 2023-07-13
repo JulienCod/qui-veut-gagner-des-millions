@@ -68,10 +68,8 @@ class UserController extends AbstractController
         // accès au données
         $userData = [
             'id' => $user->getId(),
-            'wallet' => $user->getWallet(),
             'email' => $user->getEmail(),
             'roles' => $user->getRoles(),
-            'theme' => $user->getThemeId(),
         ];
 
         // réponse

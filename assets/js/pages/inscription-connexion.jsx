@@ -42,7 +42,7 @@ export default function InscriptionConnexion({handleLoginSuccess}) {
         if (!isRegistering) {
           // Enregistrement du token en local storage
           TokenStorage.saveToken(data.token);
-          location.href="/jeux"
+          location.href="/compte";
         }
         
       } else {
