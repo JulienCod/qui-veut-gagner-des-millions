@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import AuthApi from "../../services/authApi";
 
 export default function FormTheme() {
   const [name, setName] = useState("");
   const [value, setValue] = useState(0);
-  const [token] = useState(AuthApi.getToken());
+  const [token, setToken] = useState();
 
+  useEffect(()=>{
+    setToken(AuthApi.getToken());
+  },[])
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -16,9 +19,9 @@ export default function FormTheme() {
       value: value,
     };
     try {
-      const response = await fetch("/api/theme/ajout", {
+      const response = await fetch("/api/theme/admin/ajout", {
         method: ["POST"],
-        hearders: {
+        headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },

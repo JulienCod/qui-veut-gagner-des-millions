@@ -30,11 +30,15 @@ class ThemeController extends AbstractController
         $this->tokenStorage = $tokenStorage;
         $this->entityManager = $entityManager;
     }
-    #[Route('/ajout', name: 'add', methods: ['POST'])]
+    #[Route('/admin/ajout', name: 'admin_add', methods: ['POST'])]
     public function addTheme(
         Request $request,
         ValidatorInterface $validator,
     ): JsonResponse {
+        $currentUser = $this->tokenStorage->getToken()->getUser()->getRoles()[0];
+        if ($currentUser != 'ROLE_ADMIN') {
+            return new JsonResponse(["message" => "Vous n'êtes pas autorisé à ajouter des thèmes"], JsonResponse::HTTP_FORBIDDEN);
+        }
         // récupération des données de création d'un thème
         $data = json_decode($request->getContent(), true);
 
@@ -68,7 +72,7 @@ class ThemeController extends AbstractController
         return new JsonResponse(['message' => 'Le thème a été créé avec succès'], JsonResponse::HTTP_OK);
     }
 
-    #[Route('/get/{id}', name: 'show', methods: ['GET'])]
+    #[Route('/game/get/{id}', name: 'showGame', methods: ['GET'])]
     public function getTheme(
         $id,
         Request $request,
@@ -110,7 +114,6 @@ class ThemeController extends AbstractController
 
         // compter le nombre total de questions
         $totalQuestions = count($questions);
-
         // choisir aléatoirement 15 questions (ou moins si le nombre total est inférieur à 15)
         $randomQuestions = [];
         if ($totalQuestions > 0) {
@@ -143,16 +146,18 @@ class ThemeController extends AbstractController
 
         return new JsonResponse($questionsWithAnswers, JsonResponse::HTTP_OK);
     }
-    #[Route('/getAll/{id}', name: 'getAllAccountId', methods: ['GET'])]
+    #[Route('/game/getAll', name: 'gameGetAll', methods: ['GET'])]
     public function getAllAccountID(
-        $id,
-        AccountRepository $accountRepository): JsonResponse
+        AccountRepository $accountRepository,
+        Request $request): JsonResponse
     {
 
+        // récupération de l'identifiant du compte passé en paramètre
+        $accountId = $request->query->get('accountId');
         // récupération de l'identifiant de l'utilisateur courant dans le token
         $currentUser = $this->tokenStorage->getToken()->getUser()->getId();
         // récupération du profil passé en paramètre
-        $account = $accountRepository->find($id);
+        $account = $accountRepository->find($accountId);
 
         // si le profil n'existe pas
         if(!$account){
@@ -184,7 +189,7 @@ class ThemeController extends AbstractController
         return new JsonResponse(['themes' => $themes], JsonResponse::HTTP_OK);
     }
 
-    #[Route('/delete/{id}', name:'delete', methods:['DELETE'])]
+    #[Route('/admin/delete/{id}', name:'delete', methods:['DELETE'])]
     public function delete($id): JsonResponse
     {
         $theme = $this->entityManager->getRepository(Theme::class)->find($id);
@@ -253,5 +258,57 @@ class ThemeController extends AbstractController
         $this->entityManager->flush();
 
         return new JsonResponse(['message' => 'Achat du thème bien effectué'], JsonResponse::HTTP_OK);
+    }
+
+    #[Route("/getAll", name:"getAll", methods:['GET'])]
+    public function getAll(): JsonResponse
+    {
+        $datas = $this->themeRepository->findAll();
+        $themes = [];
+        foreach ($datas as $data){
+            $theme = [
+                "id" => $data->getId(),
+                "name" => $data->getName(),
+            ];
+            $themes[] = $theme;
+        }
+        return new JsonResponse(['themes' => $themes], JsonResponse::HTTP_OK);
+    }
+
+    #[Route("/admin/get/{id}", name:"getAdmin", methods:['GET'])]
+    public function adminGetId(
+        $id,
+    ): JsonResponse
+    {
+        $currentUser = $this->tokenStorage->getToken()->getUser()->getRoles()[0];
+        if ($currentUser != 'ROLE_ADMIN') {
+            return new JsonResponse(["message" => 'Vous n\êtes pas autorisé à accéder à ce contenu'],JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        $theme = $this->themeRepository->find($id);
+
+        if (!$theme) {
+            return new JsonResponse(['message' => 'Le thème demandé n\'existe pas'], JsonResponse::HTTP_NOT_FOUND);
+        }
+    
+        $questions = [];
+        foreach ($theme->getQuestionId() as $question) {
+            $questionData = [
+                'question' => $question->getQuestion(),
+                'answers' => []
+            ];
+    
+            foreach ($question->getAnswers() as $answer) {
+                $answerData = [
+                    'answer' => $answer->getAnswer(),
+                    'correct' => $answer->isRightAnswer()
+                ];
+                $questionData['answers'][] = $answerData;
+            }
+    
+            $questions[] = $questionData;
+        }
+    
+        return new JsonResponse($questions, JsonResponse::HTTP_OK);
     }
 }

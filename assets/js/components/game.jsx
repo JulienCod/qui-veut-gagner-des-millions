@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Board from "./gameComponents/board";
 import AuthApi from "../services/authApi";
+import Swal from "sweetalert2";
 
 export default function Game({ onGameActiveChange }) {
   const [start, setStart] = useState(false);
   const [timeOut, setTimeOut] = useState(false);
   const [questionNumber, setQuestionNumber] = useState(1);
-  const [earned, setEarned] = useState("0 €");
+  const [earned, setEarned] = useState(0);
   const [readyGame, setReadyGame] = useState(false);
   const [data, setData] = useState([]);
   const [dataTheme, setDataTheme] = useState([]);
@@ -20,7 +21,7 @@ export default function Game({ onGameActiveChange }) {
 
   const getDataTheme = async () => {
       try {
-      const response = await fetch(`api/theme/getAll/${currentAccount.id}`, {
+      const response = await fetch(`api/theme/game/getAll?accountId=${currentAccount.id}`, {
         method: "GET",
         headers: {
           "Content-type": "application/json",
@@ -39,7 +40,7 @@ export default function Game({ onGameActiveChange }) {
   const choiceTheme = async (themeId) => {
     try {
       const token = AuthApi.getToken();
-      const response = await fetch("/api/theme/get/" + `${themeId}?accountId=${currentAccount.id}`, {
+      const response = await fetch("/api/theme/game/get/" + `${themeId}?accountId=${currentAccount.id}`, {
         method: "GET",
         headers: {
           "Content-type": "application/json",
@@ -56,23 +57,63 @@ export default function Game({ onGameActiveChange }) {
     }
   };
 
+  useEffect(() =>{
+    if(timeOut){
+      gainAccount();
+      console.log(earned);
+    }
+  },[timeOut]);
+
+  const gainAccount = async () => {
+    try {
+      const earnedAmount = moneyPyramid.find((m) => m.id === questionNumber - 1)?.amount || 0;
+      const response = await fetch(`/api/account/gain/${currentAccount.id}`,{
+        method: 'POST',
+        headers:{
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ "gain": earnedAmount })
+      })
+      const data = await response.json();
+      if(response.ok){
+        await Swal.fire({
+          position: "center",
+          icon: "success",
+          title: `Vos gain d'un montant de ${earnedAmount} € ont étaient crédité sur votre compte de jeu`,
+          showConfirmButton: false,
+          heightAuto: false,
+          timer: 3000,
+        });
+      }else{
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: `${data.message}`,
+        })
+      }
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
+
   const moneyPyramid = useMemo(
     () => [
-      { id: 1, amount: "200 €" },
-      { id: 2, amount: "300 €" },
-      { id: 3, amount: "500 €" },
-      { id: 4, amount: "800 €" },
-      { id: 5, amount: "1500 €", bearing: true },
-      { id: 6, amount: "3000 €" },
-      { id: 7, amount: "6000 €" },
-      { id: 8, amount: "12000 €" },
-      { id: 9, amount: "24000 €" },
-      { id: 10, amount: "48000 €", bearing: true },
-      { id: 11, amount: "72000 €" },
-      { id: 12, amount: "100000 €" },
-      { id: 13, amount: "150000 €" },
-      { id: 14, amount: "300000 €" },
-      { id: 15, amount: "1000000 €", bearing: true },
+      { id: 1, amount: 200 },
+      { id: 2, amount: 300 },
+      { id: 3, amount: 500 },
+      { id: 4, amount: 800 },
+      { id: 5, amount: 1500, bearing: true },
+      { id: 6, amount: 3000 },
+      { id: 7, amount: 6000 },
+      { id: 8, amount: 12000  },
+      { id: 9, amount: 24000 },
+      { id: 10, amount: 48000, bearing: true },
+      { id: 11, amount: 72000 },
+      { id: 12, amount: 100000 },
+      { id: 13, amount: 150000 },
+      { id: 14, amount: 300000 },
+      { id: 15, amount: 1000000, bearing: true },
     ].reverse(),
     []
   );
@@ -93,7 +134,7 @@ export default function Game({ onGameActiveChange }) {
         <>
           <div className="w-3/4 bg-gradient-to-b from-transparent to-black bg-no-repeat bg-cover bg-center flex flex-col">
             {timeOut ? (
-              <h1 className="relative inset-0 m-auto">Vous avez gagné: {earned}</h1>
+              <h1 className="relative inset-0 m-auto">Vous avez gagné: {earned} <strong>€</strong></h1>
             ) : (
               <div className="h-[100%]">
                 <Board
@@ -119,7 +160,7 @@ export default function Game({ onGameActiveChange }) {
                   } flex items-center p-[5px] rounded-md`}
                 >
                   <span className="w-[30%] text-base font-thin">{m.id}</span>
-                  <span className="text-lg font-light">{m.amount}</span>
+                  <span className="text-lg font-light">{m.amount} €</span>
                 </li>
               ))}
             </ul>

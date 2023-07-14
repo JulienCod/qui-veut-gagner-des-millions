@@ -23,7 +23,6 @@ export default function Profile() {
       });
       const data = await response.json();
       if (response.ok) {
-        console.log(data);
         setProfile(data);
       }
     } catch (error) {
