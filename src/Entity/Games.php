@@ -2,8 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\GamesRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\GamesRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[ORM\Entity(repositoryClass: GamesRepository::class)]
 class Games
@@ -19,9 +22,24 @@ class Games
     #[ORM\Column]
     private ?int $Gain = null;
 
-    #[ORM\ManyToOne(inversedBy: 'games')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $userId = null;
+    #[ORM\ManyToMany(targetEntity: Account::class, mappedBy: 'games')]
+    private Collection $accounts;
+
+    #[ORM\ManyToMany(targetEntity: Theme::class, inversedBy: 'games')]
+    private Collection $themes;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column]
+    private ?int $used_jokers_count = null;
+
+    public function __construct()
+    {
+        $this->accounts = new ArrayCollection();
+        $this->themes = new ArrayCollection();
+        $this->createdAt = new DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -52,15 +70,79 @@ class Games
         return $this;
     }
 
-    public function getUserId(): ?User
+    /**
+     * @return Collection<int, Account>
+     */
+    public function getAccounts(): Collection
     {
-        return $this->userId;
+        return $this->accounts;
     }
 
-    public function setUserId(?User $userId): static
+    public function addAccount(Account $account): static
     {
-        $this->userId = $userId;
+        if (!$this->accounts->contains($account)) {
+            $this->accounts->add($account);
+            $account->addGame($this);
+        }
 
         return $this;
     }
+
+    public function removeAccount(Account $account): static
+    {
+        if ($this->accounts->removeElement($account)) {
+            $account->removeGame($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Theme>
+     */
+    public function getThemes(): Collection
+    {
+        return $this->themes;
+    }
+
+    public function addTheme(Theme $theme): static
+    {
+        if (!$this->themes->contains($theme)) {
+            $this->themes->add($theme);
+        }
+
+        return $this;
+    }
+
+    public function removeTheme(Theme $theme): static
+    {
+        $this->themes->removeElement($theme);
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getUsedJokersCount(): ?int
+    {
+        return $this->used_jokers_count;
+    }
+
+    public function setUsedJokersCount(int $used_jokers_count): static
+    {
+        $this->used_jokers_count = $used_jokers_count;
+
+        return $this;
+    }
+
 }

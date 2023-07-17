@@ -13,6 +13,10 @@ export default function Game({ onGameActiveChange }) {
   const [dataTheme, setDataTheme] = useState([]);
   const [token] = useState(AuthApi.getToken());
   const [currentAccount] = useState(JSON.parse(localStorage.getItem('currentAccount')));
+  const [usedJokersCount, setUsedJokersCount]= useState(0);
+  const [choiceThemeId, setChoiceThemeId] =useState(null); 
+  const [correctAnswerCount, setCorrectAnswerCount] = useState(0);
+  
 
   
   useEffect(() => {
@@ -39,6 +43,7 @@ export default function Game({ onGameActiveChange }) {
   
   const choiceTheme = async (themeId) => {
     try {
+      setChoiceThemeId(themeId);
       const token = AuthApi.getToken();
       const response = await fetch("/api/theme/game/get/" + `${themeId}?accountId=${currentAccount.id}`, {
         method: "GET",
@@ -76,6 +81,7 @@ export default function Game({ onGameActiveChange }) {
       })
       const data = await response.json();
       if(response.ok){
+        saveGameStats(currentAccount.id, choiceThemeId, correctAnswerCount, usedJokersCount, earnedAmount);
         await Swal.fire({
           position: "center",
           icon: "success",
@@ -95,6 +101,34 @@ export default function Game({ onGameActiveChange }) {
       console.error(error.message);
     }
   }
+  const saveGameStats = async (accountId, themeId, correctAnswersCount, usedJokersCount, earnedAmount) => {
+    console.log(accountId, themeId, correctAnswersCount, usedJokersCount)
+    try {
+      const response = await fetch("/api/games/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          accountId,
+          themeId,
+          correctAnswersCount,
+          usedJokersCount,
+          earnedAmount,
+        }),
+      });
+  
+      const data = await response.json();
+      console.log(data);
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
 
   const moneyPyramid = useMemo(
     () => [
@@ -140,6 +174,8 @@ export default function Game({ onGameActiveChange }) {
                   questionNumber={questionNumber}
                   setQuestionNumber={setQuestionNumber}
                   setTimeOut={setTimeOut}
+                  setUsedJokersCount={setUsedJokersCount}
+                  setCorrectAnswerCount={setCorrectAnswerCount}
                 />
               </div>
             )}
