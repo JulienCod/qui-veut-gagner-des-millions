@@ -23,7 +23,6 @@ export default function Profile() {
       });
       const data = await response.json();
       if (response.ok) {
-        console.log(data);
         setProfile(data);
       }
     } catch (error) {
@@ -80,7 +79,7 @@ export default function Profile() {
 <>
   {profile && (
     <div className="p-4">
-        <div className="flex justify-around flex-wrap">
+        <div className="flex justify-around flex-wrap text-white">
             <h2 className="text-2xl font-bold">Profil de {profile.name}</h2>
             <p className="text-lg">Argent disponible : {profile.wallet} €</p>
         </div>
@@ -99,7 +98,8 @@ export default function Profile() {
                 onClick={() => {
                   buy(theme.id, theme.value, theme.name);
                 }}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                className={ profile.wallet > theme.value ? `bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline` : `bg-gray-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline`}
+                disabled={profile.wallet < theme.value}
               >
                 Acheter ce thème
               </button>

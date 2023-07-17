@@ -1,44 +1,11 @@
 import React, {useEffect, useState} from "react";
 import Swal from "sweetalert2";
-import AuthApi from "../../services/authApi";
 
-export default function FormQuestionsAnswers(){
+export default function FormQuestionsAnswers({themes}){
     const [questions, setQuestions] = useState([
         { question: '', answers: ['', '', '', ''], correctAnswer: 0, theme: '' },
     ]);
 
-    const [themes,setThemes] = useState([]);
-    const [token] = useState(AuthApi.getToken());
-
-
-    useEffect(()=>{
-        dataTheme();
-    },[]);
-    // récupération des themes en base de données
-    const dataTheme = async ()=>{
-        try {
-            const response = await fetch("/api/theme/getAll", {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error("Une erreur est survenue lors de la récupération des thèmes.");
-            }
-
-            const data = await response.json();
-
-            setThemes(data.themes);
-
-            // Traitez les données ici selon vos besoins
-        } catch (error) {
-            console.error(error);
-        }
-    }
     const addQuestion = () => {
         setQuestions((prevQuestions) => [
             ...prevQuestions,
@@ -126,7 +93,7 @@ export default function FormQuestionsAnswers(){
                             id={`question-${questionIndex}`}
                             value={question.question}
                             onChange={(e) => handleChangeQuestion(questionIndex, e.target.value)}
-                            className="w-full px-4 py-2 border rounded"
+                            className="w-full px-4 py-2 border rounded text-black"
                             placeholder="Entrez votre question"
                             required
                         />
@@ -146,7 +113,7 @@ export default function FormQuestionsAnswers(){
                                         id={`answer-${questionIndex}-${answerIndex}`}
                                         value={answer}
                                         onChange={(e) => handleChangeAnswer(questionIndex, answerIndex, e.target.value)}
-                                        className="w-full px-4 py-2 border rounded"
+                                        className="w-full px-4 py-2 border rounded text-black"
                                         placeholder={`Réponse ${answerIndex + 1}`}
                                         required
                                     />
@@ -161,17 +128,16 @@ export default function FormQuestionsAnswers(){
                                 id={`theme-${questionIndex}`}
                                 value={question.theme}
                                 onChange={(e) => handleChangeTheme(questionIndex, e.target.value)}
-                                className="w-full px-4 py-2 border rounded"
+                                className="w-full px-4 py-2 border rounded text-black"
                                 required
                             >
                                 <option value="">Sélectionnez un thème</option>
                                 {themes.map((theme) => (
-                                    <option key={theme.id} value={theme.id}>
+                                    <option className="text-black" key={theme.id} value={theme.id}>
                                         {theme.name}
                                     </option>
                                 ))}
                             </select>
-
                         </div>
                     </div>
                     ))}
