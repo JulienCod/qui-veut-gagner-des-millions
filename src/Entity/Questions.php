@@ -24,14 +24,10 @@ class Questions
     #[ORM\ManyToMany(targetEntity: Theme::class, mappedBy: 'questionId')]
     private Collection $themes;
 
-    #[ORM\OneToMany(mappedBy: 'questions', targetEntity: Answers::class,cascade:['remove'])]
-    private Collection $answerId;
-
     public function __construct()
     {
         $this->answers = new ArrayCollection();
         $this->themes = new ArrayCollection();
-        $this->answerId = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -108,12 +104,5 @@ class Questions
         return $this;
     }
 
-    /**
-     * @return Collection<int, Answers>
-     */
-    public function getAnswerId(): Collection
-    {
-        return $this->answerId;
-    }
 
 }

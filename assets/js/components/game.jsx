@@ -60,7 +60,6 @@ export default function Game({ onGameActiveChange }) {
   useEffect(() =>{
     if(timeOut){
       gainAccount();
-      console.log(earned);
     }
   },[timeOut]);
 
@@ -127,7 +126,6 @@ export default function Game({ onGameActiveChange }) {
     onGameActiveChange(true);
     setStart(true);
   };
-
   return (
     <section className="h-[100%] flex text-white">
       {start ? (

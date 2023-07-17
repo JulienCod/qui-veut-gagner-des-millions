@@ -145,7 +145,7 @@ export default function AccountIndex() {
                 </div>
                 <div className="p-2">
                   <h3 className="text-center text-xl text-gray-900 font-medium leading-8">
-                    nom : {account.name}
+                    {account.name}
                   </h3>
                   <div className="text-center text-gray-400 text-xs font-semibold">
                     <p>Porte monnaie : {account.wallet} €</p>

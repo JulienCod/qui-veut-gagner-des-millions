@@ -172,18 +172,12 @@ class ThemeController extends AbstractController
         $datas = $this->themeRepository->findAll();
         $themes = [];
         foreach ($datas as $data) {
-            $accounts = [];
-            foreach ($data->getAccounts() as $account) {
-                $accounts[] = [
-                    'id' => $account->getId()
-                ];
-            }
-            $isActive = in_array($currentUser, array_column($accounts, 'id'));
+
             $themes[] = [
                 'id' => $data->getId(),
                 'name' => $data->getName(),
                 'value' => $data->getValue(),
-                'actif' => $isActive,
+                'actif' => $account->getThemeId()->contains($data),
             ];
         }
         return new JsonResponse(['themes' => $themes], JsonResponse::HTTP_OK);
@@ -294,12 +288,14 @@ class ThemeController extends AbstractController
         $questions = [];
         foreach ($theme->getQuestionId() as $question) {
             $questionData = [
+                'id' => $question->getId(),
                 'question' => $question->getQuestion(),
                 'answers' => []
             ];
     
             foreach ($question->getAnswers() as $answer) {
                 $answerData = [
+                    'id' => $answer->getId(),
                     'answer' => $answer->getAnswer(),
                     'correct' => $answer->isRightAnswer()
                 ];
