@@ -8,7 +8,6 @@ export default function Admin() {
   const [addTheme, setAddTheme] = useState(false);
   const [addQuestion, setAddQuestion] = useState(false);
   const [themes, setThemes] = useState([]);
-  const [token] = useState(AuthApi.getToken());
   const [selectedTheme, setSelectedTheme] = useState("");
   const [questions, setQuestions] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -16,14 +15,13 @@ export default function Admin() {
     question: "",
     answers: [],
   });
-
-  useEffect(() => {
+  useEffect(()=>{
     dataTheme();
-  }, []);
-
+  },[])
   // récupération des themes en base de données
   const dataTheme = async () => {
     try {
+      const token = await AuthApi.refreshToken();
       const response = await fetch("/api/theme/getAll", {
         method: "GET",
         headers: {
@@ -31,7 +29,7 @@ export default function Admin() {
           Authorization: `Bearer ${token}`,
         },
       });
-
+      
       if (!response.ok) {
         throw new Error(
           "Une erreur est survenue lors de la récupération des thèmes."
@@ -49,19 +47,20 @@ export default function Admin() {
     setAddQuestion(false);
     setAddTheme(true);
   };
-
+  
   const question = () => {
     setAddTheme(false);
     setAddQuestion(true);
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     getDataTheme();
   };
-
+  
   const getDataTheme = async () => {
     try {
+      const token = await AuthApi.refreshToken();
       const response = await fetch(`/api/theme/admin/get/${selectedTheme}`, {
         method: "GET",
         headers: {
@@ -83,9 +82,10 @@ export default function Admin() {
       console.error(error);
     }
   };
-
+  
   const deleteQuestion = async (id) => {
     try {
+      const token = await AuthApi.refreshToken();
       const response = await fetch(`/api/questions/admin/delete/${id}`, {
         method: "DELETE",
         headers: {

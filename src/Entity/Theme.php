@@ -33,7 +33,7 @@ class Theme
 
     private Collection $accounts;
 
-    #[ORM\ManyToMany(targetEntity: Games::class, mappedBy: 'themes')]
+    #[ORM\OneToMany(mappedBy: 'theme_id', targetEntity: Games::class)]
     private Collection $games;
 
     public function __construct()
@@ -135,7 +135,7 @@ class Theme
     {
         if (!$this->games->contains($game)) {
             $this->games->add($game);
-            $game->addTheme($this);
+            $game->setThemeId($this);
         }
 
         return $this;
@@ -144,7 +144,10 @@ class Theme
     public function removeGame(Games $game): static
     {
         if ($this->games->removeElement($game)) {
-            $game->removeTheme($this);
+            // set the owning side to null (unless already changed)
+            if ($game->getThemeId() === $this) {
+                $game->setThemeId(null);
+            }
         }
 
         return $this;

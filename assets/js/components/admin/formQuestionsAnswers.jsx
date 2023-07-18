@@ -48,10 +48,12 @@ export default function FormQuestionsAnswers({themes}){
     const handleSubmit = async (event) => {
         event.preventDefault();
         try {
+            const token = await AuthApi.refreshToken();
             const response = await fetch('/api/questions/ajout', {
                 method: ["POST"],
                 headers: {
                     "Content-Type": "application/json",
+                    authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify(questions)
             })
@@ -67,8 +69,6 @@ export default function FormQuestionsAnswers({themes}){
                     timer: 1500
                 })
             }
-            // Envoyer les questions et réponses au serveur
-            console.log(questions);
         }catch (error){
             await Swal.fire({
                 icon: 'error',

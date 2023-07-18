@@ -1,14 +1,12 @@
 import React, { useState } from "react";
 import TokenStorage from "../services/localstorage";
-import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
-export default function InscriptionConnexion({handleLoginSuccess}) {
+export default function InscriptionConnexion() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -41,7 +39,7 @@ export default function InscriptionConnexion({handleLoginSuccess}) {
         });
         if (!isRegistering) {
           // Enregistrement du token en local storage
-          TokenStorage.saveToken(data.token);
+          TokenStorage.saveToken(data.token, data.refresh_token);
           location.href="/compte";
         }
         

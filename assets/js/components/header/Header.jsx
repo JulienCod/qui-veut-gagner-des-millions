@@ -1,11 +1,10 @@
 import React from "react";
 import AuthApi from "../../services/authApi";
-import {Link, useNavigate} from "react-router-dom";
+import {Link} from "react-router-dom";
 import Swal from "sweetalert2";
 
 export default function Header({isGameActive, isAuthenticated, admin})
 {
-    const navigate = useNavigate();
     const logout = async (e) => {
         e.preventDefault();
         await AuthApi.logout();

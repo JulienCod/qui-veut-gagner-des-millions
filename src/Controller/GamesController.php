@@ -58,9 +58,14 @@ class GamesController extends AbstractController
 
     }
 
+    #[Route('/getAccount/{id}', name:'getAccount', methods:['GET'])]
+    public function getAccountId(): JsonResponse
+    {
+        
+    }
     #[Route('/admin/getAll', name:'admin_getAll', methods:['GET'])]
     public function adminGetAll(): JsonResponse
     {
-
+        
     }
 }

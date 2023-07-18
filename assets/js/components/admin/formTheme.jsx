@@ -5,11 +5,7 @@ import AuthApi from "../../services/authApi";
 export default function FormTheme() {
   const [name, setName] = useState("");
   const [value, setValue] = useState(0);
-  const [token, setToken] = useState();
 
-  useEffect(()=>{
-    setToken(AuthApi.getToken());
-  },[])
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -19,6 +15,7 @@ export default function FormTheme() {
       value: value,
     };
     try {
+      const token = await AuthApi.refreshToken();
       const response = await fetch("/api/theme/admin/ajout", {
         method: ["POST"],
         headers: {

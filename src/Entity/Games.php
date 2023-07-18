@@ -22,22 +22,20 @@ class Games
     #[ORM\Column]
     private ?int $Gain = null;
 
-    #[ORM\ManyToMany(targetEntity: Account::class, mappedBy: 'games')]
-    private Collection $accounts;
-
-    #[ORM\ManyToMany(targetEntity: Theme::class, inversedBy: 'games')]
-    private Collection $themes;
-
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
     private ?int $used_jokers_count = null;
 
+    #[ORM\ManyToOne(inversedBy: 'games')]
+    private ?Account $account_id = null;
+
+    #[ORM\ManyToOne(inversedBy: 'games')]
+    private ?Theme $theme_id = null;
+
     public function __construct()
     {
-        $this->accounts = new ArrayCollection();
-        $this->themes = new ArrayCollection();
         $this->createdAt = new DateTimeImmutable();
     }
 
@@ -70,57 +68,6 @@ class Games
         return $this;
     }
 
-    /**
-     * @return Collection<int, Account>
-     */
-    public function getAccounts(): Collection
-    {
-        return $this->accounts;
-    }
-
-    public function addAccount(Account $account): static
-    {
-        if (!$this->accounts->contains($account)) {
-            $this->accounts->add($account);
-            $account->addGame($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAccount(Account $account): static
-    {
-        if ($this->accounts->removeElement($account)) {
-            $account->removeGame($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Theme>
-     */
-    public function getThemes(): Collection
-    {
-        return $this->themes;
-    }
-
-    public function addTheme(Theme $theme): static
-    {
-        if (!$this->themes->contains($theme)) {
-            $this->themes->add($theme);
-        }
-
-        return $this;
-    }
-
-    public function removeTheme(Theme $theme): static
-    {
-        $this->themes->removeElement($theme);
-
-        return $this;
-    }
-
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
@@ -141,6 +88,30 @@ class Games
     public function setUsedJokersCount(int $used_jokers_count): static
     {
         $this->used_jokers_count = $used_jokers_count;
+
+        return $this;
+    }
+
+    public function getAccountId(): ?Account
+    {
+        return $this->account_id;
+    }
+
+    public function setAccountId(?Account $account_id): static
+    {
+        $this->account_id = $account_id;
+
+        return $this;
+    }
+
+    public function getThemeId(): ?Theme
+    {
+        return $this->theme_id;
+    }
+
+    public function setThemeId(?Theme $theme_id): static
+    {
+        $this->theme_id = $theme_id;
 
         return $this;
     }

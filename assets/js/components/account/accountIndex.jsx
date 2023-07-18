@@ -9,14 +9,15 @@ export default function AccountIndex() {
   const [errorMessage, setErrorMessage] = useState("");
   const [account, setAccount] = useState("");
   const [dataAccount, setDataAccount] = useState([]);
-  const token = AuthApi.getToken();
 
   useEffect(() => {
     getDataAccount();
   }, []);
 
+  
   const getDataAccount = async () => {
     try {
+      const token = await AuthApi.refreshToken();
       const response = await fetch("/api/account/user", {
         method: "GET",
         headers: {
@@ -34,6 +35,7 @@ export default function AccountIndex() {
   };
   const handleSubmit = async () => {
     try {
+      const token = await AuthApi.refreshToken();
       const response = await fetch("/api/account/create", {
         method: "POST",
         headers: {

@@ -3,12 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Account;
-use Doctrine\Common\Lexer\Token;
 use App\Repository\AccountRepository;
 use App\Repository\ThemeRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use PHPUnit\Util\Json;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -146,11 +144,24 @@ class AccountController extends AbstractController
                         'actif' => $isActive,
                     ];
                 }
-
-                // Ajouter les thèmes au tableau de données du compte
                 $accountInfo['themes'] = $themes;
+                // Récupérer les jeux associés à ce compte
+                $games = [];
+                foreach ($account->getGames() as $datagame) {
+                    $themeAssociated = $datagame->getThemeId();
+                    $games[] = [
+                        "id" => $datagame->getId(),
+                        "date" => $datagame->getCreatedAt()->format('Y-m-d h:i:s'),
+                        "correct_answers_count" => $datagame->getCorrectAnswersCount(),
+                        "gain" => $datagame->getGain(),
+                        "used_jokers__count" => $datagame->getUsedJokersCount(),
+                        "theme_id" => [
+                            "name" => $themeAssociated->getName(),
+                        ],
+                    ];
+                }
+                $accountInfo['games'] = $games;
 
-                // Retourner les informations du compte dans la réponse JSON
                 return new JsonResponse($accountInfo, JsonResponse::HTTP_OK);
             }
         }
@@ -192,7 +203,7 @@ class AccountController extends AbstractController
         $this->entityManager->persist($account);
         $this->entityManager->flush();
 
-        return new JsonResponse(['message' =>'Les gains ont étaient enregistré en base de données'],JsonResponse::HTTP_OK);
+        return new JsonResponse(['message' =>'Les gains ont étaient enregistré en base de données'], JsonResponse::HTTP_OK);
 
 
     }

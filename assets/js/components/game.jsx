@@ -11,20 +11,27 @@ export default function Game({ onGameActiveChange }) {
   const [readyGame, setReadyGame] = useState(false);
   const [data, setData] = useState([]);
   const [dataTheme, setDataTheme] = useState([]);
-  const [token] = useState(AuthApi.getToken());
   const [currentAccount] = useState(JSON.parse(localStorage.getItem('currentAccount')));
   const [usedJokersCount, setUsedJokersCount]= useState(0);
   const [choiceThemeId, setChoiceThemeId] =useState(null); 
   const [correctAnswerCount, setCorrectAnswerCount] = useState(0);
   
-
+  const [token, setToken] = useState(null);
   
+  useEffect(() => {
+    const getToken = async () => {
+      const token = await AuthApi.getToken();
+      setToken(token);
+    };
+    getToken(); // Appel de la fonction asynchrone
+  }, []);
   useEffect(() => {
     getDataTheme();
   }, [currentAccount]);
 
   const getDataTheme = async () => {
       try {
+      const token = await AuthApi.refreshToken();
       const response = await fetch(`api/theme/game/getAll?accountId=${currentAccount.id}`, {
         method: "GET",
         headers: {
@@ -44,7 +51,7 @@ export default function Game({ onGameActiveChange }) {
   const choiceTheme = async (themeId) => {
     try {
       setChoiceThemeId(themeId);
-      const token = AuthApi.getToken();
+      const token = await AuthApi.refreshToken();
       const response = await fetch("/api/theme/game/get/" + `${themeId}?accountId=${currentAccount.id}`, {
         method: "GET",
         headers: {
@@ -70,6 +77,7 @@ export default function Game({ onGameActiveChange }) {
 
   const gainAccount = async () => {
     try {
+      const token = await AuthApi.refreshToken();
       const earnedAmount = moneyPyramid.find((m) => m.id === questionNumber - 1)?.amount || 0;
       const response = await fetch(`/api/account/gain/${currentAccount.id}`,{
         method: 'POST',
@@ -102,8 +110,8 @@ export default function Game({ onGameActiveChange }) {
     }
   }
   const saveGameStats = async (accountId, themeId, correctAnswersCount, usedJokersCount, earnedAmount) => {
-    console.log(accountId, themeId, correctAnswersCount, usedJokersCount)
     try {
+      const token = await AuthApi.refreshToken();
       const response = await fetch("/api/games/save", {
         method: "POST",
         headers: {

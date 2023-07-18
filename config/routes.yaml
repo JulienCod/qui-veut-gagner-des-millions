@@ -2,6 +2,10 @@ controllers:
     resource: ../src/Controller/
     type: attribute
 
+api_refresh_token:
+    path:       /api/token/refresh
+    controller: gesdinet.jwtrefreshtoken::refresh
+
 api_register:
     path: /api/register
     controller: App\Controller\AuthController::register
