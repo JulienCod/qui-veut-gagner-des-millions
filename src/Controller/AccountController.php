@@ -193,7 +193,6 @@ class AccountController extends AbstractController
 
         // récupération des données du front
         $data = json_decode($request->getContent(), true);
-
         // calcul pour ajouter les nouveaux gains
         $newWallet = $account->getWallet() + $data['gain'];
 

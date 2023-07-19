@@ -1,6 +1,7 @@
 import jwt_decode from "jwt-decode";
 import localstorage from "./localstorage";
 import Swal from "sweetalert2";
+import FetchApi from "./fetchApi";
 class AuthApi {
   static getToken() {
     //récupération du token en localstorage
@@ -24,17 +25,10 @@ class AuthApi {
         }
         console.log("Refreshing token");
         const refresh_token = localstorage.getRefreshToken("refresh_token");
-        const response = await fetch("/api/token/refresh", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ refresh_token: refresh_token }),
-        });
-        const data = await response.json();
-        if (response.ok) {
-          localstorage.saveToken(JSON.stringify(data.token));
-          return await data.token;
+        const response = await FetchApi("/api/token/refresh","POST",false,{ "refresh_token": refresh_token });
+        if (response.response.ok) {
+          localstorage.saveToken(response.data.token);
+          return await response.data.token;
         } else {
           Swal.fire({
             icon: "info",
@@ -73,7 +67,6 @@ class AuthApi {
       if (expiration * 1000 > new Date().getTime()) {
         return true;
       }
-      this.refreshToken();
     }
     return false;
   }

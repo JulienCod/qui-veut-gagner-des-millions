@@ -1,7 +1,7 @@
 class TokenStorage {
     //ajouter un token dans le localstorage
     static saveToken(token, refresh_token) {
-        localStorage.setItem('token', token);
+        localStorage.setItem('token', JSON.stringify(token));
         if (refresh_token){
             localStorage.setItem('refresh_token', refresh_token);
         }

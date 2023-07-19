@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import FormQuestionsAnswers from "../../components/admin/formQuestionsAnswers";
 import FormTheme from "../../components/admin/formTheme";
-import AuthApi from "../../services/authApi";
 import Swal from "sweetalert2";
+import FetchApi from "../../services/fetchApi";
 
 export default function Admin() {
   const [addTheme, setAddTheme] = useState(false);
@@ -21,23 +21,13 @@ export default function Admin() {
   // récupération des themes en base de données
   const dataTheme = async () => {
     try {
-      const token = await AuthApi.refreshToken();
-      const response = await fetch("/api/theme/getAll", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
-      if (!response.ok) {
+      const response = await FetchApi("/api/theme/getAll","GET",true);
+      if (!response.response.ok) {
         throw new Error(
           "Une erreur est survenue lors de la récupération des thèmes."
         );
       }
-
-      const data = await response.json();
-      setThemes(data.themes);
+      setThemes(response.data.themes);
     } catch (error) {
       console.error(error);
     }
@@ -60,17 +50,9 @@ export default function Admin() {
   
   const getDataTheme = async () => {
     try {
-      const token = await AuthApi.refreshToken();
-      const response = await fetch(`/api/theme/admin/get/${selectedTheme}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setQuestions(data);
+      const response = await FetchApi(`/api/theme/admin/get/${selectedTheme}`,"GET", true);
+      if (response.response.ok) {
+        setQuestions(response.data);
       } else {
         Swal.fire({
           icon: "error",
@@ -85,16 +67,8 @@ export default function Admin() {
   
   const deleteQuestion = async (id) => {
     try {
-      const token = await AuthApi.refreshToken();
-      const response = await fetch(`/api/questions/admin/delete/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (response.ok) {
+      const response = await FetchApi(`/api/questions/admin/delete/${id}`,"DELETE", true);
+      if (response.response.ok) {
         Swal.fire({
           position: "center",
           icon: "success",
@@ -108,7 +82,7 @@ export default function Admin() {
         Swal.fire({
           icon: "error",
           title: "Erreur",
-          text: data.message,
+          text: response.data.message,
         });
       }
     } catch (error) {
@@ -118,7 +92,6 @@ export default function Admin() {
 
   const openModal = (question) => {
     setModalOpen(true);
-    console.log(question);
     setEditingQuestion({
       id: question.id,
       question: question.question,
@@ -169,26 +142,10 @@ export default function Admin() {
 
   const saveChanges = async () => {
     try {
-      const updatedQuestion = {
-        id: editingQuestion.id,
-        question: editingQuestion.question,
-        answers: editingQuestion.answers,
-      };
-      const response = await fetch(
-        `/api/questions/admin/update/${updatedQuestion.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(updatedQuestion),
-        }
-      );
+      const response = await FetchApi(
+        `/api/questions/admin/update/${editingQuestion.id}`,"PUT", true,{"question": editingQuestion.question, "answers": editingQuestion.answers});
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.response.ok) {
         closeModal();
         Swal.fire({
           position: "center",
@@ -203,7 +160,7 @@ export default function Admin() {
         Swal.fire({
           icon: "error",
           title: "Erreur",
-          text: data.message,
+          text: response.data.message,
         });
       }
     } catch (error) {

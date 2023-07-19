@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Board from "./gameComponents/board";
 import AuthApi from "../services/authApi";
 import Swal from "sweetalert2";
+import FetchApi from "../services/fetchApi";
 
 export default function Game({ onGameActiveChange }) {
   const [start, setStart] = useState(false);
@@ -11,57 +12,39 @@ export default function Game({ onGameActiveChange }) {
   const [readyGame, setReadyGame] = useState(false);
   const [data, setData] = useState([]);
   const [dataTheme, setDataTheme] = useState([]);
-  const [currentAccount] = useState(JSON.parse(localStorage.getItem('currentAccount')));
-  const [usedJokersCount, setUsedJokersCount]= useState(0);
-  const [choiceThemeId, setChoiceThemeId] =useState(null); 
+  const [currentAccount] = useState(
+    JSON.parse(localStorage.getItem("currentAccount"))
+  );
+  const [usedJokersCount, setUsedJokersCount] = useState(0);
+  const [choiceThemeId, setChoiceThemeId] = useState(null);
   const [correctAnswerCount, setCorrectAnswerCount] = useState(0);
-  
-  const [token, setToken] = useState(null);
-  
-  useEffect(() => {
-    const getToken = async () => {
-      const token = await AuthApi.getToken();
-      setToken(token);
-    };
-    getToken(); // Appel de la fonction asynchrone
-  }, []);
+  const URLGETALLACCOUNTID = `api/theme/game/getAll?accountId=${currentAccount.id}`;
+
+
   useEffect(() => {
     getDataTheme();
   }, [currentAccount]);
 
   const getDataTheme = async () => {
-      try {
-      const token = await AuthApi.refreshToken();
-      const response = await fetch(`api/theme/game/getAll?accountId=${currentAccount.id}`, {
-        method: "GET",
-        headers: {
-          "Content-type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setDataTheme(data.themes);
+    try {
+      const response = await FetchApi(URLGETALLACCOUNTID, "GET");
+      if (response.response.ok) {
+        setDataTheme(response.data.themes);
       }
     } catch (error) {
       console.error(error.message);
     }
   };
-  
+
   const choiceTheme = async (themeId) => {
     try {
       setChoiceThemeId(themeId);
-      const token = await AuthApi.refreshToken();
-      const response = await fetch("/api/theme/game/get/" + `${themeId}?accountId=${currentAccount.id}`, {
-        method: "GET",
-        headers: {
-          "Content-type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setData(data);
+      const response = await FetchApi(
+        `/api/theme/game/get/${themeId}?accountId=${currentAccount.id}`,
+        "GET"
+      );
+      if (response.response.ok) {
+        setData(response.data);
         setReadyGame(true);
       }
     } catch (error) {
@@ -69,27 +52,30 @@ export default function Game({ onGameActiveChange }) {
     }
   };
 
-  useEffect(() =>{
-    if(timeOut){
+  useEffect(() => {
+    if (timeOut) {
       gainAccount();
     }
-  },[timeOut]);
+  }, [timeOut]);
 
   const gainAccount = async () => {
     try {
-      const token = await AuthApi.refreshToken();
-      const earnedAmount = moneyPyramid.find((m) => m.id === questionNumber - 1)?.amount || 0;
-      const response = await fetch(`/api/account/gain/${currentAccount.id}`,{
-        method: 'POST',
-        headers:{
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ "gain": earnedAmount })
-      })
-      const data = await response.json();
-      if(response.ok){
-        saveGameStats(currentAccount.id, choiceThemeId, correctAnswerCount, usedJokersCount, earnedAmount);
+      const earnedAmount =
+        moneyPyramid.find((m) => m.id === questionNumber - 1)?.amount || 0;
+      const response = await FetchApi(
+        `/api/account/gain/${currentAccount.id}`,
+        "POST",
+        true,
+        { gain: earnedAmount }
+      );
+      if (response.response.ok) {
+        await saveGameStats(
+          currentAccount.id,
+          choiceThemeId,
+          correctAnswerCount,
+          usedJokersCount,
+          earnedAmount
+        );
         await Swal.fire({
           position: "center",
           icon: "success",
@@ -98,64 +84,59 @@ export default function Game({ onGameActiveChange }) {
           heightAuto: false,
           timer: 3000,
         });
-      }else{
+      } else {
         Swal.fire({
-          icon: 'error',
-          title: 'Oops...',
-          text: `${data.message}`,
-        })
+          icon: "error",
+          title: "Oops...",
+          text: `${response.data.message}`,
+        });
       }
     } catch (error) {
       console.error(error.message);
     }
-  }
-  const saveGameStats = async (accountId, themeId, correctAnswersCount, usedJokersCount, earnedAmount) => {
+  };
+  const saveGameStats = async (
+    accountId,
+    themeId,
+    correctAnswersCount,
+    usedJokersCount,
+    earnedAmount
+  ) => {
     try {
-      const token = await AuthApi.refreshToken();
-      const response = await fetch("/api/games/save", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          accountId,
-          themeId,
-          correctAnswersCount,
-          usedJokersCount,
-          earnedAmount,
-        }),
+      const response = await FetchApi("/api/games/save", "POST", true, {
+        "accountId": accountId,
+        "themeId": themeId,
+        "correctAnswersCount": correctAnswersCount,
+        "usedJokersCount": usedJokersCount,
+        "earnedAmount": earnedAmount,
       });
-  
-      const data = await response.json();
-      console.log(data);
-      if (!response.ok) {
-        throw new Error(data.message);
+      if (!response.response.ok) {
+        throw new Error(response.data.message);
       }
     } catch (error) {
       console.error(error.message);
     }
   };
 
-
   const moneyPyramid = useMemo(
-    () => [
-      { id: 1, amount: 200 },
-      { id: 2, amount: 300 },
-      { id: 3, amount: 500 },
-      { id: 4, amount: 800 },
-      { id: 5, amount: 1500, bearing: true },
-      { id: 6, amount: 3000 },
-      { id: 7, amount: 6000 },
-      { id: 8, amount: 12000  },
-      { id: 9, amount: 24000 },
-      { id: 10, amount: 48000, bearing: true },
-      { id: 11, amount: 72000 },
-      { id: 12, amount: 100000 },
-      { id: 13, amount: 150000 },
-      { id: 14, amount: 300000 },
-      { id: 15, amount: 1000000, bearing: true },
-    ].reverse(),
+    () =>
+      [
+        { id: 1, amount: 200 },
+        { id: 2, amount: 300 },
+        { id: 3, amount: 500 },
+        { id: 4, amount: 800 },
+        { id: 5, amount: 1500, bearing: true },
+        { id: 6, amount: 3000 },
+        { id: 7, amount: 6000 },
+        { id: 8, amount: 12000 },
+        { id: 9, amount: 24000 },
+        { id: 10, amount: 48000, bearing: true },
+        { id: 11, amount: 72000 },
+        { id: 12, amount: 100000 },
+        { id: 13, amount: 150000 },
+        { id: 14, amount: 300000 },
+        { id: 15, amount: 1000000, bearing: true },
+      ].reverse(),
     []
   );
 
@@ -174,7 +155,9 @@ export default function Game({ onGameActiveChange }) {
         <>
           <div className="w-3/4 bg-gradient-to-b from-transparent to-black bg-no-repeat bg-cover bg-center flex flex-col">
             {timeOut ? (
-              <h1 className="relative inset-0 m-auto">Vous avez gagné: {earned} <strong>€</strong></h1>
+              <h1 className="relative inset-0 m-auto">
+                Vous avez gagné: {earned} <strong>€</strong>
+              </h1>
             ) : (
               <div className="h-[100%]">
                 <Board
@@ -211,9 +194,11 @@ export default function Game({ onGameActiveChange }) {
       ) : (
         <div className="p-4 mx-auto">
           <div className="text-center">
-            {currentAccount&&
-            <h2>Vous êtes connecter sur le profil de {currentAccount.name}</h2>
-            }
+            {currentAccount && (
+              <h2>
+                Vous êtes connecter sur le profil de {currentAccount.name}
+              </h2>
+            )}
             <h3 className="text-2xl p-4">Thèmes</h3>
             <div className="flex gap-4 justify-center">
               {dataTheme.map((t) => (

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import AuthApi from "../../services/authApi";
+import FetchApi from "../../services/fetchApi";
 
 export default function FormTheme() {
   const [name, setName] = useState("");
@@ -15,17 +16,8 @@ export default function FormTheme() {
       value: value,
     };
     try {
-      const token = await AuthApi.refreshToken();
-      const response = await fetch("/api/theme/admin/ajout", {
-        method: ["POST"],
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newTheme),
-      });
-      const data = await response.json();
-      if (response.ok) {
+      const response = await FetchApi("/api/theme/admin/ajout","POST",true,{newTheme});
+      if (response.response.ok) {
         // Réinitialiser les champs du formulaire
         setName("");
         setValue(0);

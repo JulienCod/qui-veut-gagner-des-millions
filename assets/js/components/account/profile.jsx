@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import AuthApi from "../../services/authApi";
 import Swal from "sweetalert2";
 import StatGame from "./statGame";
+import FetchApi from "../../services/fetchApi";
 
 export default function Profile() {
   const { id } = useParams();
@@ -16,24 +17,16 @@ export default function Profile() {
 
   const getProfile = async () => {
     try {
-      const token = await AuthApi.refreshToken();
-      const response = await fetch("/api/account/" + id, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setProfile(data);
+      const response = await FetchApi("/api/account/" + id,"GET", true);
+      if (response.response.ok) {
+        setProfile(response.data);
       }
     } catch (error) {
       console.error(error.message);
     }
   };
 
-  const buy = async (idTheme, value, name) => {
+  const buy = async (idTheme, name) => {
     
     Swal.fire({
       title: `Veuillez confirmer votre achat pour le thème ${name}`,
@@ -44,17 +37,8 @@ export default function Profile() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const token = await AuthApi.refreshToken();
-          const response = await fetch(`/api/theme/buy/${idTheme}`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ profileId: profile.id }),
-          });
-          const data = await response.json();
-          if (response.ok) {
+          const response = await FetchApi(`/api/theme/buy/${idTheme}`,"POST",true,{ profileId: profile.id });
+          if (response.response.ok) {
             await Swal.fire({
               position: "center",
               icon: "success",
@@ -68,7 +52,7 @@ export default function Profile() {
             Swal.fire({
               icon: "error",
               title: "Oops...",
-              text: `${data.message}`,
+              text: `${response.data.message}`,
             });
           }
         } catch (error) {

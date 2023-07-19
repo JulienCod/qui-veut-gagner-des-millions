@@ -45,8 +45,8 @@ class GamesController extends AbstractController
         $game = new Games();
         $account = $accountRepository->find($data['accountId']);
         $theme = $themeRepository->find($data['themeId']);
-        $game->addAccount($account);
-        $game->addTheme($theme);
+        $game->setAccountId($account);
+        $game->setThemeId($theme);
         $game->setCorrectAnswersCount($data['correctAnswersCount']);
         $game->setUsedJokersCount($data['usedJokersCount']);
         $game->setGain($data['earnedAmount']);

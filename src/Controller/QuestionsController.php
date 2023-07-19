@@ -41,10 +41,8 @@ class QuestionsController extends AbstractController
 
         $errors = [];
         $createdQuestions = [];
-
         foreach ($data as $questionData) {
             $theme = $this->entityManager->getRepository(Theme::class)->find($questionData['theme']);
-
             if (!$theme) {
                 $errors[] = 'Le thème demandé n\'existe pas';
                 continue;
