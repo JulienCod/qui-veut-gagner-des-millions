@@ -72,7 +72,6 @@ export default function FormQuestionsAnswers({ themes }) {
       const response = await FetchApi(
         "/api/questions/admin/ajout",
         "POST",
-        true,
         questions
       );
       if (response.response.ok) {

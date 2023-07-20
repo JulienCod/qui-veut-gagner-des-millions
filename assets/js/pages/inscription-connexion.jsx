@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import TokenStorage from "../services/localstorage";
 import Swal from "sweetalert2";
 import FetchApi from "../services/fetchApi";
 
@@ -11,10 +10,8 @@ export default function InscriptionConnexion() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Effectuez ici votre logique de connexion ou d'inscription avec les données email et password
-      const useToken = false;
       const response = await FetchApi(
-        isRegistering ? "/api/register" : "/api/login","POST",useToken,{ "email":email, "password":password });
+        isRegistering ? "/api/register" : "/api/login","POST",{ "email":email, "password":password });
       if (response.response.ok) {
         // Réinitialisez les champs après la soumission réussie
         setEmail("");
@@ -31,8 +28,6 @@ export default function InscriptionConnexion() {
           timer: 1500,
         });
         if (!isRegistering) {
-          // Enregistrement du token en local storage
-          TokenStorage.saveToken(response.data.token, response.data.refresh_token);
           location.href="/compte";
         }
         

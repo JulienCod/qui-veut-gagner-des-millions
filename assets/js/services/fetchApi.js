@@ -1,16 +1,10 @@
-import AuthApi from "./authApi";
-
-const FetchApi = async (url, method, useToken = Boolean,  datas = null) => {
+const FetchApi = async (url, method,  datas = null) => {
   try {
-    let token = '';
-    if (useToken){
-      token = await AuthApi.refreshToken();
-    }
     const options = {
         method: method,
+        credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
         },
     };
     

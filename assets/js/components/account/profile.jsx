@@ -17,7 +17,7 @@ export default function Profile() {
 
   const getProfile = async () => {
     try {
-      const response = await FetchApi("/api/account/" + id,"GET", true);
+      const response = await FetchApi("/api/account/" + id,"GET");
       if (response.response.ok) {
         setProfile(response.data);
       }
@@ -37,7 +37,7 @@ export default function Profile() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await FetchApi(`/api/theme/buy/${idTheme}`,"POST",true,{ profileId: profile.id });
+          const response = await FetchApi(`/api/theme/buy/${idTheme}`,"POST",{ profileId: profile.id });
           if (response.response.ok) {
             await Swal.fire({
               position: "center",

@@ -65,7 +65,6 @@ export default function Game({ onGameActiveChange }) {
       const response = await FetchApi(
         `/api/account/gain/${currentAccount.id}`,
         "POST",
-        true,
         { gain: earnedAmount }
       );
       if (response.response.ok) {
@@ -103,7 +102,7 @@ export default function Game({ onGameActiveChange }) {
     earnedAmount
   ) => {
     try {
-      const response = await FetchApi("/api/games/save", "POST", true, {
+      const response = await FetchApi("/api/games/save", "POST", {
         "accountId": accountId,
         "themeId": themeId,
         "correctAnswersCount": correctAnswersCount,

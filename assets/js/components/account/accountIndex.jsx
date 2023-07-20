@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import AuthApi from "../../services/authApi";
 import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
 import FetchApi from "../../services/fetchApi";
@@ -18,7 +17,7 @@ export default function AccountIndex() {
   
   const getDataAccount = async () => {
     try {
-      const response = await FetchApi("/api/account/user", "GET", true);
+      const response = await FetchApi("/api/account/user", "GET");
       if (response.response.ok) {
         setDataAccount(response.data);
       }
@@ -30,8 +29,7 @@ export default function AccountIndex() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const useToken = true;
-      const response = await FetchApi("/api/account/create","POST", useToken,{ "account" : account });
+      const response = await FetchApi("/api/account/create","POST", { "account" : account });
       if (response.response.ok) {
         setAccount("");
         await Swal.fire({

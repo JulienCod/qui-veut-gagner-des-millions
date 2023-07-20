@@ -16,7 +16,7 @@ export default function FormTheme() {
       value: value,
     };
     try {
-      const response = await FetchApi("/api/theme/admin/ajout","POST",true,{newTheme});
+      const response = await FetchApi("/api/theme/admin/ajout","POST",newTheme);
       if (response.response.ok) {
         // Réinitialiser les champs du formulaire
         setName("");

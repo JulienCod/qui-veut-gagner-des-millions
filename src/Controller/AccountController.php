@@ -12,48 +12,65 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 #[Route('/api/account', name: 'app_account_')]
 class AccountController extends AbstractController
 {
     private $entityManager;
-    private $tokenStorage;
     private $accountRepository;
+    private $userRepository;
+    private $validator;
+    private $requestStack;
+    private $themeRepository;
     public function __construct(
         EntityManagerInterface $entityManager,
-        TokenStorageInterface $tokenStorage,
-        AccountRepository $accountRepository
+        AccountRepository $accountRepository,
+        UserRepository $userRepository,
+        ValidatorInterface $validator,
+        RequestStack $requestStack,
+        ThemeRepository $themeRepository,
     ) {
         $this->entityManager = $entityManager;
-        $this->tokenStorage = $tokenStorage;
         $this->accountRepository = $accountRepository;
+        $this->userRepository = $userRepository;
+        $this->validator = $validator;
+        $this->requestStack = $requestStack;
+        $this->themeRepository = $themeRepository;
     }
     #[Route('/create', name: 'app_account_create', methods:['POST'])]
-    public function create(
-        Request $request,
-        ValidatorInterface $validator,
-        ThemeRepository $themeRepository,
-        UserRepository $userRepository
-    ): JsonResponse {
+    public function create(Request $request): JsonResponse
+    {
+
+        // récupération de la session
+        $session = $this->requestStack->getSession();
+
+        //récupération de l'identifiant de l'utilisateur via le cookie de session
+        $currentUserId = $session->get('user_id');
+
+        //récupération de l'utilisateur
+        $user = $this->userRepository->find($currentUserId);
+
+        //si l'utilisateur n'est pas trouvé retourner une erreur
+        if(!$user) {
+            return new JsonResponse(["message" => "L'utilisateur n'existe pas"], JsonResponse::HTTP_NOT_FOUND);
+        }
+
         // récupération des données de création d'un compte
         $data = json_decode($request->getContent(), true);
 
-        //récupération de l'identifiant de l'utilisateur via le token
-        $currentUser = $this->tokenStorage->getToken()->getUser()->getId();
         //création d'un nouveau compte
         $account = new Account();
         $account->setName($data['account']);
         $account->setWallet(0);
-
-        $user = $userRepository->find($currentUser);
         $account->setUser($user);
 
         // recherche du thème numéro 1 pour l'ajout par défault
-        $theme = $themeRepository->find(1);
+        $theme = $this->themeRepository->find(1);
         $account->addThemeId($theme);
+
         //validation des données du compte
-        $errors = $validator->validate($account);
+        $errors = $this->validator->validate($account);
         if(count($errors) > 0) {
             // il y a des erreurs de validation
             $errorMessages = [];
@@ -71,14 +88,29 @@ class AccountController extends AbstractController
     }
 
     #[Route('/user', name: 'user', methods:['GET'])]
-    public function getAccountByUser(
-        UserRepository $userRepository
-    ): JsonResponse {
-        $currentUser = $this->tokenStorage->getToken()->getUser()->getId();
-        $user = $userRepository->find($currentUser);
+    public function getAccountByUser(): JsonResponse
+    {
+        // récupération de la session
+        $session = $this->requestStack->getSession();
+
+        //récupération de l'identifiant de l'utilisateur via le cookie de session
+        $currentUserId = $session->get('user_id');
+
+        //récupération de l'utilisateur
+        $user = $this->userRepository->find($currentUserId);
+
+        //si l'utilisateur n'est pas trouvé retourner une erreur
+        if(!$user) {
+            return new JsonResponse(["message" => "L'utilisateur n'existe pas"], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        //créé un tableau de tout les comptes présent pour l'utilisateur
         $accounts = $user->getAccounts()->toArray();
 
+        // création d'un tableau vide pour récupérer les informations de chaque comptes
         $accountDatas = [];
+
+        // parcours le tableau de comptes pour enregistrer les informations
         foreach ($accounts as $account) {
             $accountData = [
                 'id' => $account->getId(),
@@ -97,24 +129,39 @@ class AccountController extends AbstractController
             $accountDatas[]= $accountData;
         }
 
+        // retour les comptes au front
         return new JsonResponse($accountDatas, JsonResponse::HTTP_OK);
     }
 
     #[Route("/{id}", name: "id", methods: ['GET'])]
     public function accountId(
         $id,
-        UserRepository $userRepository,
-        AccountRepository $accountRepository,
-        ThemeRepository $themeRepository,
     ): JsonResponse {
-        $currentUser = $this->tokenStorage->getToken()->getUser()->getId();
-        $user = $userRepository->find($currentUser);
+        // récupération de la session
+        $session = $this->requestStack->getSession();
+
+        //récupération de l'identifiant de l'utilisateur via le cookie de session
+        $currentUserId = $session->get('user_id');
+
+        //récupération de l'utilisateur
+        $user = $this->userRepository->find($currentUserId);
+
+        //si l'utilisateur n'est pas trouvé retourner une erreur
+        if(!$user) {
+            return new JsonResponse(["message" => "L'utilisateur n'existe pas"], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        //créé un tableau de tout les comptes présent pour l'utilisateur
         $accounts = $user->getAccounts()->toArray();
+
+        // parcours le tableau de comptes pour enregistrer les informations
         foreach ($accounts as $account) {
+
             // Vérifier si l'utilisateur courant est le propriétaire du compte
             if ($account->getId() == $id) {
+
                 // Récupérer les informations du compte
-                $data = $accountRepository->find($id);
+                $data = $this->accountRepository->find($id);
                 $accountInfo = [
                     "id" => $account->getId(),
                     "name" => $data->getName(),
@@ -122,9 +169,12 @@ class AccountController extends AbstractController
                 ];
 
                 // Récupérer tous les thèmes
-                $dataThemes = $themeRepository->findAll();
+                $dataThemes = $this->themeRepository->findAll();
 
+                // créé un tableau vide pour enregistré les informations des thèmes
                 $themes = [];
+
+                // parcours chaque thèmes pour récupérer les informations du thème
                 foreach ($dataThemes as $dataTheme) {
                     $themeAccounts = $dataTheme->getAccounts()->toArray();
                     $isActive = false;
@@ -163,11 +213,12 @@ class AccountController extends AbstractController
                 $accountInfo['games'] = $games;
 
                 return new JsonResponse($accountInfo, JsonResponse::HTTP_OK);
-            }
-        }
 
-        // Si l'utilisateur courant n'est pas le propriétaire du compte, renvoyer une réponse d'erreur
-        return new JsonResponse(['message' => 'Vous n\'avez pas accès au données de ce compte'], JsonResponse::HTTP_UNAUTHORIZED);
+            }
+
+            // Si l'utilisateur courant n'est pas le propriétaire du compte, renvoyer une réponse d'erreur
+            return new JsonResponse(['message' => 'Vous n\'avez pas accès au données de ce compte'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
     }
 
     #[Route("/gain/{id}", name:"gain_account", methods:['POST'])]
@@ -183,11 +234,22 @@ class AccountController extends AbstractController
             return new JsonResponse(["message" => "Le compte n\'existe pas"], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        // récupération de l'identifiant de l'utilisateur courant par le token
-        $currentUser = $this->tokenStorage->getToken()->getUser()->getId();
+        // récupération de la session
+        $session = $this->requestStack->getSession();
+
+        //récupération de l'identifiant de l'utilisateur via le cookie de session
+        $currentUserId = $session->get('user_id');
+
+        //récupération de l'utilisateur
+        $user = $this->userRepository->find($currentUserId);
+
+        //si l'utilisateur n'est pas trouvé retourner une erreur
+        if(!$user) {
+            return new JsonResponse(["message" => "L'utilisateur n'existe pas"], JsonResponse::HTTP_NOT_FOUND);
+        }
 
         // on vérifie que l'identifiant utilisateur du compte correspond bien à l'identifiant de l'utilisateur courant dans le token
-        if($account->getUser()->getId() != $currentUser) {
+        if($account->getUser()->getId() != $user->getId()) {
             return new JsonResponse(['message' => 'Vous n\'avez pas accès à ce compte'], JsonResponse::HTTP_FORBIDDEN);
         }
 
@@ -203,7 +265,6 @@ class AccountController extends AbstractController
         $this->entityManager->flush();
 
         return new JsonResponse(['message' =>'Les gains ont étaient enregistré en base de données'], JsonResponse::HTTP_OK);
-
 
     }
 }

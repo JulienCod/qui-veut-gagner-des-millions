@@ -18,15 +18,23 @@ import AccountIndex from "./components/account/accountIndex";
 import Profile from "./components/account/profile";
 
 function Main() {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    AuthApi.isAuthenticated()
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [admin, setAdmin] = useState(false);
   const [isGameActive, setIsGameActive] = useState(false);
 
+  const auth = async () => {
+    const auth = await AuthApi.isAuthenticated();
+    setIsAuthenticated(auth);
+  };
+
+  useEffect(() => {
+    auth();
+  }, []);
+  
   useEffect(() => {
     isAdmin();
   }, [isAuthenticated]);
+  
   const isAdmin = async () => {
     if (isAuthenticated) {
       let user = await AuthApi.getUserRole();
@@ -63,11 +71,11 @@ function Main() {
             )}
             {isAuthenticated ? (
               <>
-              <Route path="/compte" element={<AccountIndex />} />
-              <Route path="/compte/profil/:id" element={<Profile />}/>
-              <Route
-                path="/jeux"
-                element={<Game onGameActiveChange={handleGameActiveChange} />}
+                <Route path="/compte" element={<AccountIndex />} />
+                <Route path="/compte/profil/:id" element={<Profile />} />
+                <Route
+                  path="/jeux"
+                  element={<Game onGameActiveChange={handleGameActiveChange} />}
                 />
               </>
             ) : (

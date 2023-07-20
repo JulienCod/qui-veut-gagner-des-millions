@@ -15,13 +15,13 @@ export default function Admin() {
     question: "",
     answers: [],
   });
-  useEffect(()=>{
+  useEffect(() => {
     dataTheme();
-  },[])
+  }, []);
   // récupération des themes en base de données
   const dataTheme = async () => {
     try {
-      const response = await FetchApi("/api/theme/getAll","GET",true);
+      const response = await FetchApi("/api/theme/getAll", "GET");
       if (!response.response.ok) {
         throw new Error(
           "Une erreur est survenue lors de la récupération des thèmes."
@@ -37,20 +37,23 @@ export default function Admin() {
     setAddQuestion(false);
     setAddTheme(true);
   };
-  
+
   const question = () => {
     setAddTheme(false);
     setAddQuestion(true);
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     getDataTheme();
   };
-  
+
   const getDataTheme = async () => {
     try {
-      const response = await FetchApi(`/api/theme/admin/get/${selectedTheme}`,"GET", true);
+      const response = await FetchApi(
+        `/api/theme/admin/get/${selectedTheme}`,
+        "GET"
+      );
       if (response.response.ok) {
         setQuestions(response.data);
       } else {
@@ -64,27 +67,44 @@ export default function Admin() {
       console.error(error);
     }
   };
-  
+
   const deleteQuestion = async (id) => {
     try {
-      const response = await FetchApi(`/api/questions/admin/delete/${id}`,"DELETE", true);
-      if (response.response.ok) {
-        Swal.fire({
-          position: "center",
-          icon: "success",
-          title: "Your work has been saved",
-          showConfirmButton: false,
-          heightAuto: false,
-          timer: 1500,
-        });
-        getDataTheme();
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Erreur",
-          text: response.data.message,
-        });
-      }
+      Swal.fire({
+        position: "center",
+        title: "Supprimer la question ? ",
+        showConfirmButton: true,
+        showCancelButton: true,
+        confirmButtonText: "Supprimer",
+        denyButtonText: `Ne pas supprimer`,
+        heightAuto: false,
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await FetchApi(
+            `/api/questions/admin/delete/${id}`,
+            "DELETE"
+          );
+          if (response.response.ok) {
+            Swal.fire({
+              position: "center",
+              icon: "success",
+              title: "Question supprimer avec succès",
+              showConfirmButton: false,
+              heightAuto: false,
+              timer: 1500,
+            });
+            getDataTheme();
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "Erreur",
+              text: response.data.message,
+            });
+          }
+        } else if (result.isDenied) {
+          Swal.fire("Changes are not saved", "", "info");
+        }
+      });
     } catch (error) {
       console.error(error);
     }
@@ -143,7 +163,10 @@ export default function Admin() {
   const saveChanges = async () => {
     try {
       const response = await FetchApi(
-        `/api/questions/admin/update/${editingQuestion.id}`,"PUT", true,{"question": editingQuestion.question, "answers": editingQuestion.answers});
+        `/api/questions/admin/update/${editingQuestion.id}`,
+        "PUT",
+        { question: editingQuestion.question, answers: editingQuestion.answers }
+      );
 
       if (response.response.ok) {
         closeModal();
@@ -223,7 +246,7 @@ export default function Admin() {
         </form>
         {questions && (
           <>
-          <h2>Il y a {questions.length} questions</h2>
+            <h2>Il y a {questions.length} questions</h2>
             {questions.map((question) => (
               <div key={question.id} className="mb-4">
                 <div>
@@ -252,8 +275,8 @@ export default function Admin() {
                       Modifier
                     </button>
                     <button
-                      onClick={() => {
-                        deleteQuestion(question.id);
+                      onClick={async () => {
+                        await deleteQuestion(question.id);
                       }}
                     >
                       Supprimer
