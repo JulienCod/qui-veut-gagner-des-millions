@@ -7,6 +7,8 @@ export default function Board({
   questionNumber,
   setQuestionNumber,
   setTimeOut,
+  setUsedJokersCount,
+  setCorrectAnswerCount,
 }) {
   const [question, setQuestion] = useState(null);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -19,7 +21,12 @@ export default function Board({
   const [fiftyFiftyUsed, setFiftyFiftyUsed] = useState(false);
   const [callAFriendUsed, setCallAFriendUsed] = useState(false);
   const [voteOfPublicUsed, setVoteOfPublicUsed] = useState(false);
+  const [useJokerscount, setUsejokercount] = useState(0);
+  const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
 
+  useEffect(() => {
+    setUsedJokersCount(useJokerscount);
+  }, [useJokerscount, setUsedJokersCount]);
   useEffect(() => {
     letsPlay();
   }, [letsPlay]);
@@ -63,9 +70,11 @@ export default function Board({
       if (a.correct) {
         correctAnswer();
         stop();
+        setCorrectAnswersCount(correctAnswersCount+1);
         delay(1000, () => {
           setQuestionNumber((prev) => prev + 1);
           if (questionNumber === 15) {
+            setCorrectAnswerCount(correctAnswersCount+1);
             setTimeOut(true);
           }
           setSelectedAnswer(null);
@@ -73,6 +82,7 @@ export default function Board({
         });
       } else {
         wrongAnswer();
+        setCorrectAnswerCount(correctAnswersCount);
         stop();
         delay(1000, () => {
           setTimeOut(true);
@@ -100,6 +110,7 @@ export default function Board({
         fiftyFiftyUsed: true,
       }));
       setFiftyFiftyUsed(true);
+      setUsejokercount(useJokerscount+1);
     }
   };
 
@@ -117,6 +128,7 @@ export default function Board({
         });
       });
       setCallAFriendUsed(true);
+      setUsejokercount(useJokerscount+1);
     }
   };
 
@@ -155,9 +167,10 @@ export default function Board({
       setSelectedAnswer(null);
       setSelectAnswer(false);
       setVoteOfPublicUsed(true);
+      setUsejokercount(useJokerscount+1);
     }
   };
-
+  
   return (
     <>
       <div className="relative h-1/2 flex flex-col md:flex-row md:items-center md:justify-between">
@@ -232,7 +245,7 @@ export default function Board({
                   {String.fromCharCode(65 + index)}:
                 </span>{" "}
                 &emsp; <span>{a.answer}</span>
-                {a.selected && selectAnswer && <span>&nbsp;&lt; Ami</span>}
+                {a.selected && <span>&nbsp;&lt; Ami</span>}
                 {a.percentage && <span>&nbsp;({a.percentage}%)</span>}
               </div>
             ))}

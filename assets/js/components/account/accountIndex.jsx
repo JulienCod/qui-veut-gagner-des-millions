@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import AuthApi from "../../services/authApi";
 import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
+import FetchApi from "../../services/fetchApi";
 
 export default function AccountIndex() {
   const [createAccount, setCreateAccount] = useState(false);
@@ -9,53 +9,40 @@ export default function AccountIndex() {
   const [errorMessage, setErrorMessage] = useState("");
   const [account, setAccount] = useState("");
   const [dataAccount, setDataAccount] = useState([]);
-  const token = AuthApi.getToken();
 
   useEffect(() => {
     getDataAccount();
   }, []);
 
+  
   const getDataAccount = async () => {
     try {
-      const response = await fetch("/api/account/user", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setDataAccount(data);
+      const response = await FetchApi("/api/account/user", "GET");
+      if (response.response.ok) {
+        setDataAccount(response.data);
       }
     } catch (error) {
       console.error(error.message);
     }
   };
-  const handleSubmit = async () => {
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const response = await fetch("/api/account/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ account }),
-      });
-      const data = await response.json();
-      if (response.ok) {
+      const response = await FetchApi("/api/account/create","POST", { "account" : account });
+      if (response.response.ok) {
         setAccount("");
         await Swal.fire({
           position: "center",
           icon: "success",
-          title: `Le Profil ${data.account} a été créé avec succès`,
+          title: `Le Profil ${response.data.account} a été créé avec succès`,
           showConfirmButton: false,
           heightAuto: false,
           timer: 1500,
         });
       } else {
         // enregistrer et afficher le message d'erreur
-        setErrorMessage(data.message);
+        setErrorMessage(response.data.message);
       }
     } catch (error) {
       console.error(error);

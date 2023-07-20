@@ -6,14 +6,15 @@ use App\Entity\Answers;
 use App\Entity\Questions;
 use App\Entity\Theme;
 use App\Repository\QuestionsRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpClient\Response\JsonMockResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 #[Route('/api/questions', name: 'app_questions_')]
 class QuestionsController extends AbstractController
@@ -22,46 +23,83 @@ class QuestionsController extends AbstractController
     private $questionsRepository;
     private $tokenStorage;
     private $validator;
+    private $requestStack;
+    private $userRepository;
+
     public function __construct(
         EntityManagerInterface $entityManager,
         QuestionsRepository $questionsRepository,
         TokenStorageInterface $tokenStorage,
         ValidatorInterface $validator,
+        RequestStack $requestStack,
+        UserRepository $userRepository,
     ) {
         $this->entityManager = $entityManager;
         $this->questionsRepository = $questionsRepository;
         $this->tokenStorage = $tokenStorage;
         $this->validator = $validator;
+        $this->requestStack = $requestStack;
+        $this->userRepository = $userRepository;
     }
 
     #[Route('/admin/ajout', name: 'admin_add_question', methods: ['POST'])]
     public function add(Request $request): JsonResponse
     {
+        // récupération de la session
+        $session = $this->requestStack->getSession();
+
+        //récupération de l'identifiant de l'utilisateur via le cookie de session
+        $currentUserId = $session->get('user_id');
+
+        //récupération de l'utilisateur
+        $user = $this->userRepository->find($currentUserId);
+
+        //si l'utilisateur n'est pas trouvé retourner une erreur
+        if(!$user) {
+            return new JsonResponse(["message" => "L'utilisateur n'existe pas"], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        //récupération du role de l'utilisateur
+        $currentUserRole = $session->get('user_role')[0];
+
+        // si l'utilisateur n'a pas le role admin renvoi une erreur
+        if ($currentUserRole != 'ROLE_ADMIN') {
+            return new JsonResponse(["message" => "Vous n'êtes pas autorisé à ajouter des thèmes"], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        // récupération des datas du front
         $data = json_decode($request->getContent(), true);
 
+        // création d'un tableau vide pour enregistrer les erreurs
         $errors = [];
+
+        // création d'un tableau vide pour enregistrer les questions
         $createdQuestions = [];
 
+        //bouclé sur les réponses pour enregistrer chaue données une à une
         foreach ($data as $questionData) {
+            // recherche le theme
             $theme = $this->entityManager->getRepository(Theme::class)->find($questionData['theme']);
-
             if (!$theme) {
                 $errors[] = 'Le thème demandé n\'existe pas';
                 continue;
             }
 
-            $question = new Questions();
-            $question->setQuestion($questionData['question']);
-            $question->addTheme($theme);
-
-            $validationErrors = $this->validator->validate($question);
-            if (count($validationErrors) > 0) {
-                $errors[] = 'Erreur de validation pour la question : ' . $questionData['question'];
-                continue;
-            }
-
+            // contrôle si la question existe déjà
             $existingQuestion = $this->entityManager->getRepository(Questions::class)->findOneBy(['Question' => $questionData['question']]);
-            if ($existingQuestion) {
+            if (!$existingQuestion) {
+                // création d'une question
+                $question = new Questions();
+                $question->setQuestion($questionData['question']);
+                $question->addTheme($theme);
+
+                // valider les données saisi pour la question
+                $validationErrors = $this->validator->validate($question);
+                if (count($validationErrors) > 0) {
+                    $errors[] = 'Erreur de validation pour la question : ' . $questionData['question'];
+                    continue;
+                }
+            } else {
                 $errors[] = 'La question existe déjà : ' . $questionData['question'];
                 continue;
             }
@@ -71,12 +109,12 @@ class QuestionsController extends AbstractController
                 $answer->setAnswer($answerText['answer']);
                 $answer->setQuestionId($question);
                 $answer->setRightAnswer($answerText['correct']);
-                
-                
+
+
                 $this->entityManager->persist($answer);
                 $question->addAnswer($answer);
             }
-            
+
             $this->entityManager->persist($question);
             $createdQuestions[] = $question;
         }
@@ -93,11 +131,26 @@ class QuestionsController extends AbstractController
     #[Route("/admin/delete/{id}", name:"admin_delete", methods:['DELETE'])]
     public function deleteQuestion($id): JsonResponse
     {
-        // récupération des informations de l'utilisateur présent dans le token
-        $currentUser = $this->tokenStorage->getToken()->getUser()->getRoles()[0];
-        // controle que l'utilisateur courant soit l'administrateur
-        if ($currentUser != 'ROLE_ADMIN') {
-            return new JsonResponse(['message' => "Vous n'avez pas les droits pour supprimer une question"], JsonResponse::HTTP_FORBIDDEN);
+        // récupération de la session
+        $session = $this->requestStack->getSession();
+
+        //récupération de l'identifiant de l'utilisateur via le cookie de session
+        $currentUserId = $session->get('user_id');
+
+        //récupération de l'utilisateur
+        $user = $this->userRepository->find($currentUserId);
+
+        //si l'utilisateur n'est pas trouvé retourner une erreur
+        if(!$user) {
+            return new JsonResponse(["message" => "L'utilisateur n'existe pas"], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        //récupération du role de l'utilisateur
+        $currentUserRole = $session->get('user_role')[0];
+
+        // si l'utilisateur n'a pas le role admin renvoi une erreur
+        if ($currentUserRole != 'ROLE_ADMIN') {
+            return new JsonResponse(["message" => "Vous n'êtes pas autorisé à ajouter des thèmes"], JsonResponse::HTTP_FORBIDDEN);
         }
 
         // récupération de la question avec l'identifiant passé en parametre
@@ -117,11 +170,26 @@ class QuestionsController extends AbstractController
     #[Route("/admin/update/{id}", name: "admin_update", methods: ['PUT', 'POST'])]
     public function updateQuestion($id, Request $request): JsonResponse
     {
-        // Récupération des informations de l'utilisateur présent dans le token
-        $currentUser = $this->tokenStorage->getToken()->getUser()->getRoles()[0];
-        // Contrôle que l'utilisateur courant soit l'administrateur
-        if ($currentUser != 'ROLE_ADMIN') {
-            return new JsonResponse(['message' => "Vous n'avez pas les droits pour modifier une question"], JsonResponse::HTTP_FORBIDDEN);
+        // récupération de la session
+        $session = $this->requestStack->getSession();
+
+        //récupération de l'identifiant de l'utilisateur via le cookie de session
+        $currentUserId = $session->get('user_id');
+
+        //récupération de l'utilisateur
+        $user = $this->userRepository->find($currentUserId);
+
+        //si l'utilisateur n'est pas trouvé retourner une erreur
+        if(!$user) {
+            return new JsonResponse(["message" => "L'utilisateur n'existe pas"], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        //récupération du role de l'utilisateur
+        $currentUserRole = $session->get('user_role')[0];
+
+        // si l'utilisateur n'a pas le role admin renvoi une erreur
+        if ($currentUserRole != 'ROLE_ADMIN') {
+            return new JsonResponse(["message" => "Vous n'êtes pas autorisé à ajouter des thèmes"], JsonResponse::HTTP_FORBIDDEN);
         }
 
         // Récupération de la question avec l'identifiant passé en paramètre
@@ -165,5 +233,4 @@ class QuestionsController extends AbstractController
 
         return new JsonResponse(['message' => 'La question et les réponses ont été modifiées avec succès'], JsonResponse::HTTP_OK);
     }
-
 }

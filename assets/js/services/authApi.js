@@ -1,41 +1,47 @@
-import jwt_decode from 'jwt-decode'
-import localstorage from "./localstorage";
-class AuthApi
-{
-    static getToken() {
-        return localStorage.getItem('token');
-    }
+import FetchApi from "./fetchApi";
 
-    static getUserRole() {
-        const token = this.getToken();
-        if (token) {
-            // Décoder le token JWT pour obtenir les informations de l'utilisateur
-            const decodedToken = jwt_decode(token);
-            // Vérifier si le token contient les informations du rôle de l'utilisateur
-            if (decodedToken && decodedToken.roles) {
-                return decodedToken.roles[0];
-            }
-        }
-        return null;
+class AuthApi {
+  static getUserRole() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      const role = user.user_role[0];
+      return role;
     }
+    return null;
+  }
 
-    static isAuthenticated() {
-    // 1. Voir si on a un token ?
-    const token = localstorage.getToken("token");
-    // 2. Si le token est encore valide
-    if (token) {
-        const { exp: expiration } = jwt_decode(token);
-        if (expiration * 1000 > new Date().getTime()) {
-            return true;
-        }
+  static async isAuthenticated() {
+    try {
+      const data = await FetchApi("/api/users/me", "GET", false);
+
+      if (data.response.ok) {
+        localStorage.setItem("user", JSON.stringify(data.data));
+
+        return true;
+      } else {
+        // Si la requête n'est pas réussie, gérer l'erreur ici
         return false;
+      }
+    } catch (error) {
+      // Si une exception est levée, gérer l'erreur ici
+      console.error("Erreur lors de la requête :", error.message);
+      return false;
     }
-    return false;
+  }
+
+  static async logout() {
+    try {
+      const response = await FetchApi("/api/logout", "POST", false);
+
+      if (!response.response.ok) {
+        console.log('problem logging out')
+      }
+    } catch (error) {
+      // Si une exception est levée, gérer l'erreur ici
+      console.error("Erreur lors de la requête :", error.message);
+      return false;
+    }
+  }
 }
 
-    static async logout() {
-        localstorage.removeToken("token");
-    }
-}
-
-export default AuthApi
+export default AuthApi;

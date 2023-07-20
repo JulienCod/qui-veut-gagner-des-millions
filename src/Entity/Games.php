@@ -2,8 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\GamesRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\GamesRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[ORM\Entity(repositoryClass: GamesRepository::class)]
 class Games
@@ -19,9 +22,22 @@ class Games
     #[ORM\Column]
     private ?int $Gain = null;
 
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column]
+    private ?int $used_jokers_count = null;
+
     #[ORM\ManyToOne(inversedBy: 'games')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $userId = null;
+    private ?Account $account_id = null;
+
+    #[ORM\ManyToOne(inversedBy: 'games')]
+    private ?Theme $theme_id = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -52,15 +68,52 @@ class Games
         return $this;
     }
 
-    public function getUserId(): ?User
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
-        return $this->userId;
+        return $this->createdAt;
     }
 
-    public function setUserId(?User $userId): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
-        $this->userId = $userId;
+        $this->createdAt = $createdAt;
 
         return $this;
     }
+
+    public function getUsedJokersCount(): ?int
+    {
+        return $this->used_jokers_count;
+    }
+
+    public function setUsedJokersCount(int $used_jokers_count): static
+    {
+        $this->used_jokers_count = $used_jokers_count;
+
+        return $this;
+    }
+
+    public function getAccountId(): ?Account
+    {
+        return $this->account_id;
+    }
+
+    public function setAccountId(?Account $account_id): static
+    {
+        $this->account_id = $account_id;
+
+        return $this;
+    }
+
+    public function getThemeId(): ?Theme
+    {
+        return $this->theme_id;
+    }
+
+    public function setThemeId(?Theme $theme_id): static
+    {
+        $this->theme_id = $theme_id;
+
+        return $this;
+    }
+
 }

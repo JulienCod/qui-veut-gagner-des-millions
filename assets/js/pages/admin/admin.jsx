@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import FormQuestionsAnswers from "../../components/admin/formQuestionsAnswers";
 import FormTheme from "../../components/admin/formTheme";
-import AuthApi from "../../services/authApi";
 import Swal from "sweetalert2";
+import FetchApi from "../../services/fetchApi";
 
 export default function Admin() {
   const [addTheme, setAddTheme] = useState(false);
   const [addQuestion, setAddQuestion] = useState(false);
   const [themes, setThemes] = useState([]);
-  const [token] = useState(AuthApi.getToken());
   const [selectedTheme, setSelectedTheme] = useState("");
   const [questions, setQuestions] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -16,30 +15,19 @@ export default function Admin() {
     question: "",
     answers: [],
   });
-
   useEffect(() => {
     dataTheme();
   }, []);
-
   // récupération des themes en base de données
   const dataTheme = async () => {
     try {
-      const response = await fetch("/api/theme/getAll", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
+      const response = await FetchApi("/api/theme/getAll", "GET");
+      if (!response.response.ok) {
         throw new Error(
           "Une erreur est survenue lors de la récupération des thèmes."
         );
       }
-
-      const data = await response.json();
-      setThemes(data.themes);
+      setThemes(response.data.themes);
     } catch (error) {
       console.error(error);
     }
@@ -62,16 +50,12 @@ export default function Admin() {
 
   const getDataTheme = async () => {
     try {
-      const response = await fetch(`/api/theme/admin/get/${selectedTheme}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setQuestions(data);
+      const response = await FetchApi(
+        `/api/theme/admin/get/${selectedTheme}`,
+        "GET"
+      );
+      if (response.response.ok) {
+        setQuestions(response.data);
       } else {
         Swal.fire({
           icon: "error",
@@ -86,31 +70,41 @@ export default function Admin() {
 
   const deleteQuestion = async (id) => {
     try {
-      const response = await fetch(`/api/questions/admin/delete/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+      Swal.fire({
+        position: "center",
+        title: "Supprimer la question ? ",
+        showConfirmButton: true,
+        showCancelButton: true,
+        confirmButtonText: "Supprimer",
+        denyButtonText: `Ne pas supprimer`,
+        heightAuto: false,
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await FetchApi(
+            `/api/questions/admin/delete/${id}`,
+            "DELETE"
+          );
+          if (response.response.ok) {
+            Swal.fire({
+              position: "center",
+              icon: "success",
+              title: "Question supprimer avec succès",
+              showConfirmButton: false,
+              heightAuto: false,
+              timer: 1500,
+            });
+            getDataTheme();
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "Erreur",
+              text: response.data.message,
+            });
+          }
+        } else if (result.isDenied) {
+          Swal.fire("Changes are not saved", "", "info");
+        }
       });
-      const data = await response.json();
-      if (response.ok) {
-        Swal.fire({
-          position: "center",
-          icon: "success",
-          title: "Your work has been saved",
-          showConfirmButton: false,
-          heightAuto: false,
-          timer: 1500,
-        });
-        getDataTheme();
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Erreur",
-          text: data.message,
-        });
-      }
     } catch (error) {
       console.error(error);
     }
@@ -118,7 +112,6 @@ export default function Admin() {
 
   const openModal = (question) => {
     setModalOpen(true);
-    console.log(question);
     setEditingQuestion({
       id: question.id,
       question: question.question,
@@ -169,26 +162,13 @@ export default function Admin() {
 
   const saveChanges = async () => {
     try {
-      const updatedQuestion = {
-        id: editingQuestion.id,
-        question: editingQuestion.question,
-        answers: editingQuestion.answers,
-      };
-      const response = await fetch(
-        `/api/questions/admin/update/${updatedQuestion.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(updatedQuestion),
-        }
+      const response = await FetchApi(
+        `/api/questions/admin/update/${editingQuestion.id}`,
+        "PUT",
+        { question: editingQuestion.question, answers: editingQuestion.answers }
       );
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.response.ok) {
         closeModal();
         Swal.fire({
           position: "center",
@@ -203,7 +183,7 @@ export default function Admin() {
         Swal.fire({
           icon: "error",
           title: "Erreur",
-          text: data.message,
+          text: response.data.message,
         });
       }
     } catch (error) {
@@ -266,7 +246,7 @@ export default function Admin() {
         </form>
         {questions && (
           <>
-          <h2>Il y a {questions.length} questions</h2>
+            <h2>Il y a {questions.length} questions</h2>
             {questions.map((question) => (
               <div key={question.id} className="mb-4">
                 <div>
@@ -295,8 +275,8 @@ export default function Admin() {
                       Modifier
                     </button>
                     <button
-                      onClick={() => {
-                        deleteQuestion(question.id);
+                      onClick={async () => {
+                        await deleteQuestion(question.id);
                       }}
                     >
                       Supprimer

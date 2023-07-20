@@ -33,10 +33,14 @@ class Theme
 
     private Collection $accounts;
 
+    #[ORM\OneToMany(mappedBy: 'theme_id', targetEntity: Games::class)]
+    private Collection $games;
+
     public function __construct()
     {
         $this->questionId = new ArrayCollection();
         $this->accounts = new ArrayCollection();
+        $this->games = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -114,6 +118,36 @@ class Theme
     {
         if ($this->accounts->removeElement($account)) {
             $account->removeThemeId($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Games>
+     */
+    public function getGames(): Collection
+    {
+        return $this->games;
+    }
+
+    public function addGame(Games $game): static
+    {
+        if (!$this->games->contains($game)) {
+            $this->games->add($game);
+            $game->setThemeId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGame(Games $game): static
+    {
+        if ($this->games->removeElement($game)) {
+            // set the owning side to null (unless already changed)
+            if ($game->getThemeId() === $this) {
+                $game->setThemeId(null);
+            }
         }
 
         return $this;

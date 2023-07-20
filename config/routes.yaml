@@ -8,6 +8,8 @@ api_register:
     methods: [POST]
 api_login:
     path: /api/login
+    controller: App\Controller\AuthController::login
+    methods: [POST]
 
 api_logout:
     path: /api/logout

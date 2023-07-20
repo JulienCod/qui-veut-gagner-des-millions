@@ -138,28 +138,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->games;
     }
 
-    public function addGame(Games $game): static
-    {
-        if (!$this->games->contains($game)) {
-            $this->games->add($game);
-            $game->setUserId($this);
-        }
-
-        return $this;
-    }
-
-    public function removeGame(Games $game): static
-    {
-        if ($this->games->removeElement($game)) {
-            // set the owning side to null (unless already changed)
-            if ($game->getUserId() === $this) {
-                $game->setUserId(null);
-            }
-        }
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, Account>
      */

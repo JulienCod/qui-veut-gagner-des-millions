@@ -1,30 +1,18 @@
 import React, { useState } from "react";
-import TokenStorage from "../services/localstorage";
-import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import FetchApi from "../services/fetchApi";
 
-export default function InscriptionConnexion({handleLoginSuccess}) {
+export default function InscriptionConnexion() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Effectuez ici votre logique de connexion ou d'inscription avec les données email et password
-      const response = await fetch(
-        isRegistering ? "/api/register" : "/api/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      );
-      const data = await response.json();
-      if (response.ok) {
+      const response = await FetchApi(
+        isRegistering ? "/api/register" : "/api/login","POST",{ "email":email, "password":password });
+      if (response.response.ok) {
         // Réinitialisez les champs après la soumission réussie
         setEmail("");
         setPassword("");
@@ -40,14 +28,12 @@ export default function InscriptionConnexion({handleLoginSuccess}) {
           timer: 1500,
         });
         if (!isRegistering) {
-          // Enregistrement du token en local storage
-          TokenStorage.saveToken(data.token);
           location.href="/compte";
         }
         
       } else {
         // enregistrer et afficher le message d'erreur
-        setErrorMessage(data.message);
+        setErrorMessage(response.data.message);
       }
     } catch (error) {
       await Swal.fire({
