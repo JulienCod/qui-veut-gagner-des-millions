@@ -4,6 +4,7 @@ const FetchApi = async (url, method,  datas = null) => {
         method: method,
         credentials: 'include',
         headers: {
+          accept: 'application/json',
             'Content-Type': 'application/json',
         },
     };
@@ -12,8 +13,15 @@ const FetchApi = async (url, method,  datas = null) => {
         options.body = JSON.stringify(datas); 
     }
     const response = await fetch(url, options);
-    const data = await response.json();
-    return { response, data };
+    if (response.ok) {
+      const data = await response.json();
+      return { response, data };
+    }
+    if (response.status === 401){
+      localStorage.removeItem('user');
+      localStorage.removeItem('currentAccount');
+      return {response};
+    }
   } catch (error) {
     console.error(error.message);
     throw error;

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
 import FetchApi from "../../services/fetchApi";
+import { useNavigate } from "react-router-dom";
+
 
 export default function AccountIndex() {
   const [createAccount, setCreateAccount] = useState(false);
@@ -9,6 +11,7 @@ export default function AccountIndex() {
   const [errorMessage, setErrorMessage] = useState("");
   const [account, setAccount] = useState("");
   const [dataAccount, setDataAccount] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     getDataAccount();
@@ -40,6 +43,9 @@ export default function AccountIndex() {
           heightAuto: false,
           timer: 1500,
         });
+        await getDataAccount();
+        setCreateAccount(false);
+        setViewAccount(true);
       } else {
         // enregistrer et afficher le message d'erreur
         setErrorMessage(response.data.message);
@@ -61,8 +67,47 @@ export default function AccountIndex() {
       "wallet": account.wallet
     }
     localStorage.setItem('currentAccount', JSON.stringify(currentAccount));
-    location.href="/jeux";
+    navigate("/jeu");
   };
+
+  const deleteAccount = async (accountId) => {
+    try {
+      Swal.fire({
+        position: "center",
+        title: "Voulez vous supprimer le compte ? ",
+        showConfirmButton: true,
+        showCancelButton: true,
+        confirmButtonText: "Supprimer",
+        denyButtonText: `Ne pas supprimer`,
+        heightAuto: false,
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await FetchApi(`/api/account/delete/${accountId}`, "DELETE");
+          if (response.response.ok) {
+            Swal.fire({
+              position: "center",
+              icon: "success",
+              title: "Le compte a été supprimé avec succès",
+              showConfirmButton: false,
+              heightAuto: false,
+              timer: 1500,
+            });
+            getDataAccount();
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "Erreur",
+              text: response.data.message,
+            });
+          }
+        } else if (result.isDenied) {
+          Swal.fire("Le compte n'a pas été supprimé", "", "info");
+        }
+    })
+  } catch (error) {
+      console.error(error);
+    }
+  }
   return (
     <div className="text-white">
       <div>
@@ -152,6 +197,12 @@ export default function AccountIndex() {
                       onClick={() => {choiceProfile(account)}}
                     >
                       Jouer avec ce profil
+                    </button>
+                    <button
+                      className="bg-red-800 p-1 text-xs text-white hover:bg-red-500 font-medium"
+                      onClick={() => {deleteAccount(account.id)}}
+                    >
+                      Supprimer ce profil
                     </button>
                   </div>
                 </div>

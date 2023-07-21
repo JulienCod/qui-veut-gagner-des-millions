@@ -84,7 +84,7 @@ class AccountController extends AbstractController
         $this->entityManager->persist($account);
         $this->entityManager->flush();
 
-        return new JsonResponse(['message' => 'Le compte a été créé avec succès','account'=>$account], JsonResponse::HTTP_OK);
+        return new JsonResponse(['message' => 'Le compte a été créé avec succès','account'=>$account->getName()], JsonResponse::HTTP_OK);
     }
 
     #[Route('/user', name: 'user', methods:['GET'])]
@@ -145,7 +145,6 @@ class AccountController extends AbstractController
 
         //récupération de l'utilisateur
         $user = $this->userRepository->find($currentUserId);
-
         //si l'utilisateur n'est pas trouvé retourner une erreur
         if(!$user) {
             return new JsonResponse(["message" => "L'utilisateur n'existe pas"], JsonResponse::HTTP_NOT_FOUND);
@@ -153,7 +152,6 @@ class AccountController extends AbstractController
 
         //créé un tableau de tout les comptes présent pour l'utilisateur
         $accounts = $user->getAccounts()->toArray();
-
         // parcours le tableau de comptes pour enregistrer les informations
         foreach ($accounts as $account) {
 
@@ -215,9 +213,6 @@ class AccountController extends AbstractController
                 return new JsonResponse($accountInfo, JsonResponse::HTTP_OK);
 
             }
-
-            // Si l'utilisateur courant n'est pas le propriétaire du compte, renvoyer une réponse d'erreur
-            return new JsonResponse(['message' => 'Vous n\'avez pas accès au données de ce compte'], JsonResponse::HTTP_UNAUTHORIZED);
         }
     }
 
@@ -226,14 +221,6 @@ class AccountController extends AbstractController
         $id,
         Request $request,
     ): JsonResponse {
-        // récupération du compte avec l'identition passé en parametre
-        $account = $this->accountRepository->find($id);
-
-        // contrôle si le compte existe
-        if (!$account) {
-            return new JsonResponse(["message" => "Le compte n\'existe pas"], JsonResponse::HTTP_NOT_FOUND);
-        }
-
         // récupération de la session
         $session = $this->requestStack->getSession();
 
@@ -246,6 +233,14 @@ class AccountController extends AbstractController
         //si l'utilisateur n'est pas trouvé retourner une erreur
         if(!$user) {
             return new JsonResponse(["message" => "L'utilisateur n'existe pas"], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        // récupération du compte avec l'identition passé en parametre
+        $account = $this->accountRepository->find($id);
+
+        // contrôle si le compte existe
+        if (!$account) {
+            return new JsonResponse(["message" => "Le compte n\'existe pas"], JsonResponse::HTTP_NOT_FOUND);
         }
 
         // on vérifie que l'identifiant utilisateur du compte correspond bien à l'identifiant de l'utilisateur courant dans le token
@@ -266,5 +261,41 @@ class AccountController extends AbstractController
 
         return new JsonResponse(['message' =>'Les gains ont étaient enregistré en base de données'], JsonResponse::HTTP_OK);
 
+    }
+
+    #[Route("/delete/{id}", name: "delete_account", methods:['DELETE'])]
+    public function deleteAccount ($id): JsonResponse
+    {
+        // récupération de la session
+        $session = $this->requestStack->getSession();
+
+        //récupération de l'identifiant de l'utilisateur via le cookie de session
+        $currentUserId = $session->get('user_id');
+
+        //récupération de l'utilisateur
+        $user = $this->userRepository->find($currentUserId);
+
+        //si l'utilisateur n'est pas trouvé retourner une erreur
+        if(!$user) {
+            return new JsonResponse(["message" => "L'utilisateur n'existe pas"], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        // recherche du compte dans la base de données
+        $account = $this->accountRepository->find($id);
+
+        // contrôle si le compte existe
+        if(!$account) {
+            return new JsonResponse(['message' => 'Le compte n\'existe pas'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        // on vérifie que l'identifiant utilisateur du compte correspond bien à l'identifiant de l'utilisateur courant dans le token
+        if($account->getUser()->getId() != $user->getId()) {
+            return new JsonResponse(['message' => 'Vous n\'avez pas accès à ce compte'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        $this->entityManager->remove($account);
+        $this->entityManager->flush();
+
+        return new JsonResponse(['message' => 'Le compte a été supprimer avec succès'], JsonResponse::HTTP_OK);
     }
 }

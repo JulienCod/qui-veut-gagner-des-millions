@@ -226,6 +226,7 @@ class ThemeController extends AbstractController
                 'name' => $data->getName(),
                 'value' => $data->getValue(),
                 'actif' => $account->getThemeId()->contains($data),
+                'date' => $data->getCreatedAt('')
             ];
         }
         return new JsonResponse(['themes' => $themes], JsonResponse::HTTP_OK);
@@ -349,6 +350,7 @@ class ThemeController extends AbstractController
             $theme = [
                 "id" => $data->getId(),
                 "name" => $data->getName(),
+                'date' => $data->getCreatedAt(),
             ];
             $themes[] = $theme;
         }
@@ -394,6 +396,7 @@ class ThemeController extends AbstractController
             $questionData = [
                 'id' => $question->getId(),
                 'question' => $question->getQuestion(),
+                'checked' => $question->isChecked(),
                 'answers' => []
             ];
 

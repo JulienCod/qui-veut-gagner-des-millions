@@ -10,7 +10,8 @@ import {
 import Base from "./templates/Base";
 import Accueil from "./pages/Accueil";
 import InscriptionConnexion from "./pages/inscription-connexion";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuthContext } from "./context/AuthContext";
+import { AppProvider, useAppContext } from "./context/AppContext";
 import AuthApi from "./services/authApi";
 import Game from "./components/game";
 import Admin from "./pages/admin/admin";
@@ -18,8 +19,8 @@ import AccountIndex from "./components/account/accountIndex";
 import Profile from "./components/account/profile";
 
 function Main() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [admin, setAdmin] = useState(false);
+  const { isAuthenticated, setIsAuthenticated } = useAuthContext();
+  const { admin, setAdmin } = useAppContext();
   const [isGameActive, setIsGameActive] = useState(false);
 
   const auth = async () => {
@@ -30,11 +31,11 @@ function Main() {
   useEffect(() => {
     auth();
   }, []);
-  
+
   useEffect(() => {
     isAdmin();
   }, [isAuthenticated]);
-  
+
   const isAdmin = async () => {
     if (isAuthenticated) {
       let user = await AuthApi.getUserRole();
@@ -45,56 +46,55 @@ function Main() {
       }
     }
   };
-  const handleGameActiveChange = (value) => {
-    setIsGameActive(value);
-  };
+
   return (
-    <AuthProvider value={{ isAuthenticated, setIsAuthenticated }}>
-      {/* Enveloppez votre application avec le AuthProvider pour rendre le contexte disponible dans toute l'application */}
-      <Router>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <Base
-                isAuthenticated={isAuthenticated}
-                isGameActive={isGameActive}
-                admin={admin}
-              />
-            }
-          >
-            <Route index element={<Accueil />} />
-            {admin ? (
-              <Route path="/admin" element={<Admin />} />
-            ) : (
-              <Route path={"/admin"} element={<Navigate to="/" />} />
-            )}
-            {isAuthenticated ? (
-              <>
-                <Route path="/compte" element={<AccountIndex />} />
-                <Route path="/compte/profil/:id" element={<Profile />} />
-                <Route
-                  path="/jeux"
-                  element={<Game onGameActiveChange={handleGameActiveChange} />}
-                />
-              </>
-            ) : (
-              <Route path={"/jeux"} element={<Navigate to="/" />} />
-            )}
-            <Route
-              path="connexion-inscription"
-              element={<InscriptionConnexion />}
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <Base
+              isGameActive={isGameActive}
             />
-          </Route>
-        </Routes>
-      </Router>
-    </AuthProvider>
+          }
+        >
+          <Route index element={<Accueil />} />
+          {admin ? (
+            <Route path="/admin" element={<Admin />} />
+          ) : (
+            <Route path={"/admin"} element={<Navigate to="/" />} />
+          )}
+          {isAuthenticated ? (
+            <>
+              <Route path="/compte" element={<AccountIndex />} />
+              <Route path="/compte/profil/:id" element={<Profile />} />
+              <Route
+                path="/jeu"
+                element={<Game setIsGameActive={setIsGameActive} />}
+              />
+            </>
+          ) : (
+            <Route path="/jeux" element={<Navigate to="/" />} />
+          )}
+          <Route
+            path="connexion-inscription"
+            element={
+              <InscriptionConnexion setIsAuthenticated={setIsAuthenticated} />
+            }
+          />
+        </Route>
+      </Routes>
+    </Router>
   );
 }
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <Main />
+    <AuthProvider>
+      <AppProvider>
+        <Main />
+      </AppProvider>
+    </AuthProvider>
   </React.StrictMode>
 );
