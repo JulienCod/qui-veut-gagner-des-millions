@@ -4,7 +4,7 @@ import AuthApi from "../services/authApi";
 import Swal from "sweetalert2";
 import FetchApi from "../services/fetchApi";
 
-export default function Game({ setIsGameActive }) {
+export default function Game({ setIsGameActive, isGameActive }) {
   const [start, setStart] = useState(false);
   const [timeOut, setTimeOut] = useState(false);
   const [questionNumber, setQuestionNumber] = useState(1);
@@ -157,7 +157,7 @@ export default function Game({ setIsGameActive }) {
     setIsMoneyPyramidVisible((prev) => !prev);
   };
   return (
-    <section className="h-[100%] flex text-white">
+    <section className={isGameActive? "h-[100%] flex text-gray-200" : "min-h-[calc(100vh-72px-52px)] flex text-gray-200" }>
       {start ? (
         <>
           <div className={isMoneyPyramidVisible ? "w-4/6 bg-gradient-to-b from-transparent to-black bg-no-repeat bg-cover bg-center flex flex-col" : "w-full bg-gradient-to-b from-transparent to-black bg-no-repeat bg-cover bg-center flex flex-col"}>
@@ -192,39 +192,21 @@ export default function Game({ setIsGameActive }) {
                         : "text-orange-500"
                     } flex items-center p-[5px] rounded-md`}
                   >
-                    <span className="w-[15%] md:w-[30%] text-sm md:text-base font-thin">
+                    <span className="w-[15%] md:w-[30%] text-[16px] md:text-base font-thin">
                       {m.id}
                     </span>
-                    <span className=" text-sm md:text-lg font-light">{m.amount} €</span>
+                    <span className=" text-[16px] md:text-lg font-light">{m.amount} €</span>
                   </li>
                 ))}
               </ul>
             </div>
           ) : null}
+         { isGameActive &&
           <button
             onClick={toggleMoneyPyramid}
             className="fixed top-4 right-4 p-2 bg-blue-500 text-white rounded-md"
           >
-          </button>
-          {/* <div className="w-1/4 bg-[#04001b] flex items-center justify-center border-l-4 border-white">
-            <ul className="p-[20px] list-none w-full">
-              {moneyPyramid.map((m) => (
-                <li
-                  key={m.id}
-                  className={`${
-                    questionNumber === m.id
-                      ? "text-black bg-orange-500"
-                      : m.bearing
-                      ? "text-white"
-                      : "text-orange-500"
-                  } flex items-center p-[5px] rounded-md`}
-                >
-                  <span className="w-[30%] text-base font-thin">{m.id}</span>
-                  <span className="text-lg font-light">{m.amount} €</span>
-                </li>
-              ))}
-            </ul>
-          </div> */}
+          </button>}
         </>
       ) : (
         <div className="p-4 mx-auto">
@@ -241,7 +223,7 @@ export default function Game({ setIsGameActive }) {
                   onClick={() => choiceTheme(t.id)}
                   key={t.id}
                   className={`${
-                    t.actif ? "bg-green-500" : "bg-red-500"
+                    t.actif ? "bg-[#349151] hover:bg-[#4E6095]" : "bg-gray-200 text-gray-600"
                   } text-white py-2 px-4 mb-4 rounded-md`}
                   disabled={!t.actif}
                 >
@@ -254,7 +236,8 @@ export default function Game({ setIsGameActive }) {
             <div className="m-auto">
               <button
                 onClick={handleGameActiveChange}
-                className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 m-auto"
+                className="bg-[#4E6095] hover:bg-[#349151]  text-gray-200 font-bold py-2 px-4 border-white rounded-lg focus:outline-none focus:shadow-outline"
+
               >
                 Commencer une nouvelle partie
               </button>

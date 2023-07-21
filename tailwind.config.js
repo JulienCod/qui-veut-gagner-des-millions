@@ -5,9 +5,13 @@ module.exports = {
     'templates/**/*.html.twig',
     'assets/js/**/*.js',
     'assets/js/**/*.jsx', // Si vous utilisez des fichiers React JSX
+    "./node_modules/flowbite/**/*.js"
   ],
   theme: {
     extend: {
+      screens: {
+        's': '500px',
+      },
       animation: {
         correct: 'correct 3s ease forwards',
         wrong: 'wrong 3s ease forwards',
@@ -30,6 +34,8 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('flowbite/plugin')
+  ],
 }
 

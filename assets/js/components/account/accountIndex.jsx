@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import FetchApi from "../../services/fetchApi";
 import { useNavigate } from "react-router-dom";
 
-
 export default function AccountIndex() {
   const [createAccount, setCreateAccount] = useState(false);
   const [viewAccount, setViewAccount] = useState(true);
@@ -12,12 +11,12 @@ export default function AccountIndex() {
   const [account, setAccount] = useState("");
   const [dataAccount, setDataAccount] = useState([]);
   const navigate = useNavigate();
+  const cssButton ="bg-[#4E6095] hover:bg-[#C6598E]  text-gray-200 font-bold py-2 px-4 border-white rounded-lg focus:outline-none focus:shadow-outline"
 
   useEffect(() => {
     getDataAccount();
   }, []);
 
-  
   const getDataAccount = async () => {
     try {
       const response = await FetchApi("/api/account/user", "GET");
@@ -32,7 +31,9 @@ export default function AccountIndex() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await FetchApi("/api/account/create","POST", { "account" : account });
+      const response = await FetchApi("/api/account/create", "POST", {
+        account: account,
+      });
       if (response.response.ok) {
         setAccount("");
         await Swal.fire({
@@ -62,11 +63,11 @@ export default function AccountIndex() {
 
   const choiceProfile = (account) => {
     const currentAccount = {
-      "id": account.id,
-      "name": account.name,
-      "wallet": account.wallet
-    }
-    localStorage.setItem('currentAccount', JSON.stringify(currentAccount));
+      id: account.id,
+      name: account.name,
+      wallet: account.wallet,
+    };
+    localStorage.setItem("currentAccount", JSON.stringify(currentAccount));
     navigate("/jeu");
   };
 
@@ -82,7 +83,10 @@ export default function AccountIndex() {
         heightAuto: false,
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const response = await FetchApi(`/api/account/delete/${accountId}`, "DELETE");
+          const response = await FetchApi(
+            `/api/account/delete/${accountId}`,
+            "DELETE"
+          );
           if (response.response.ok) {
             Swal.fire({
               position: "center",
@@ -103,22 +107,22 @@ export default function AccountIndex() {
         } else if (result.isDenied) {
           Swal.fire("Le compte n'a pas été supprimé", "", "info");
         }
-    })
-  } catch (error) {
+      });
+    } catch (error) {
       console.error(error);
     }
-  }
+  };
   return (
-    <div className="text-white">
+    <div className="text-gray-200 py-4">
       <div>
-        <h1 className="text-center text-white">Compte Utilisateur</h1>
+        <h1 className="text-center text-gray-200 mb-4">Gestion des comptes utilisateurs</h1>
       </div>
-      <div className="flex justify-center">
+      <div className="flex justify-center gap-4">
         <button
           onClick={() => {
             displayView();
           }}
-          className="bg-gray-500 hover:bg-gray-300 text-white hover:text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          className={cssButton}
         >
           Créer un profil utilisateur
         </button>
@@ -126,7 +130,7 @@ export default function AccountIndex() {
           onClick={() => {
             displayView();
           }}
-          className="bg-gray-500 hover:bg-gray-300 text-white hover:text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          className={cssButton}
         >
           Gérer les profils du compte
         </button>
@@ -151,7 +155,7 @@ export default function AccountIndex() {
           <div className="flex items-center justify-between gap-4">
             <button
               type="submit"
-              className="bg-gray-500 hover:bg-gray-300 text-white hover:text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              className={cssButton}
             >
               Créer un profil
             </button>
@@ -159,20 +163,19 @@ export default function AccountIndex() {
         </form>
       )}
       {viewAccount && (
-        <div className="flex gap-4 p-4 w-full justify-center">
-          {dataAccount.length === 0 &&
-          <div>
-            Vous n'avez pas encore créé de profil
-          </div>}
-          
+        <div className="flex flex-col s:flex-row s:flex-wrap items-center gap-4 p-4 w-full justify-center">
+          {dataAccount.length === 0 && (
+            <div>Vous n'avez pas encore créé de profil</div>
+          )}
+
           {dataAccount.map((account) => (
-            <div key={account.id} className="max-w-xs">
-              <div className="bg-white shadow-xl rounded-lg py-3">
+            <div key={account.id} className="w-[200px]">
+              <div className="bg-gray-200 shadow-xl rounded-lg py-3 min-w-[200px] ">
                 <div className="photo-wrapper p-2">
                   <img
                     className="w-32 h-32 rounded-full mx-auto"
-                    src="https://www.gravatar.com/avatar/2acfb745ecf9d4dccb3364752d17f65f?s=260&d=mp"
-                    alt="John Doe"
+                    src="/images/logo/logo.webp"
+                    alt="Logo qui veut gagner des millions"
                   />
                 </div>
                 <div className="p-2">
@@ -180,7 +183,7 @@ export default function AccountIndex() {
                     {account.name}
                   </h3>
                   <div className="text-center text-gray-400 text-xs font-semibold">
-                    <p>Porte monnaie : {account.wallet} €</p>
+                    <p>Argent disponibles : {account.wallet} €</p>
                   </div>
 
                   <div className="text-center my-3">
@@ -194,13 +197,19 @@ export default function AccountIndex() {
                   <div className="text-center my-3">
                     <button
                       className="text-xs text-indigo-500 italic hover:underline hover:text-indigo-600 font-medium"
-                      onClick={() => {choiceProfile(account)}}
+                      onClick={() => {
+                        choiceProfile(account);
+                      }}
                     >
                       Jouer avec ce profil
                     </button>
+                  </div>
+                  <div className="text-center my-3">
                     <button
-                      className="bg-red-800 p-1 text-xs text-white hover:bg-red-500 font-medium"
-                      onClick={() => {deleteAccount(account.id)}}
+                      className="m-4 bg-red-800 p-1 text-xs text-gray-200 hover:bg-red-500 font-medium"
+                      onClick={() => {
+                        deleteAccount(account.id);
+                      }}
                     >
                       Supprimer ce profil
                     </button>

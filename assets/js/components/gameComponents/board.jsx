@@ -23,6 +23,7 @@ export default function Board({
   const [voteOfPublicUsed, setVoteOfPublicUsed] = useState(false);
   const [useJokerscount, setUsejokercount] = useState(0);
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
+  const [friendSelected, setFriendSelected] = useState(false);
 
   useEffect(() => {
     setUsedJokersCount(useJokerscount);
@@ -48,9 +49,9 @@ export default function Board({
   const handleClick = (a) => {
     setSelectedAnswer(a);
     setClassName(
-      "min-w-[calc(50%-2rem)] flex-1 p-2 m-1 md:p-5 md:m-4 bg-gradient-to-b from-purple-900" +
-        " to-indigo-900 border border-white rounded-lg font-light text-lg cursor-pointer transition-colors" +
-        " duration-300 hover:bg-blue-500 active:bg-blue-500"
+      "min-w-[calc(50%-2rem)] flex-1 p-2 m-1 md:p-5 md:m-4 "+
+       " bg-gradient-to-b from-purple-900 to-indigo-900 border border-white rounded-lg font-light text-lg cursor-pointer transition-colors" +
+        " duration-300  active:from-purple-900 active:to-indigo-900"
     );
 
     setSelectAnswer(true);
@@ -117,15 +118,15 @@ export default function Board({
   // joker appel à un ami
   const callAFriend = () => {
     if (question) {
-      const correctAnswer = question.answers.find((answer) => answer.correct);
       const randomDelay = Math.floor(Math.random() * 3000) + 1000; // Temps aléatoire entre 1 et 4 secondes pour la réponse de l'ami
       delay(randomDelay, () => {
-        setSelectedAnswer(correctAnswer);
-        setSelectAnswer(true);
-        delay(2000, () => {
-          setSelectedAnswer(null);
-          setSelectAnswer(false);
-        });
+        setQuestion((prevQuestion) => ({
+          ...prevQuestion,
+          answers: prevQuestion.answers.map((answer) =>
+            answer.correct ? { ...answer, friendSelected: true } : answer
+          ),
+        }));
+        setFriendSelected(true);
       });
       setCallAFriendUsed(true);
       setUsejokercount(useJokerscount + 1);
@@ -210,14 +211,12 @@ export default function Board({
             <Timer
               setTimeOut={setTimeOut}
               questionNumber={questionNumber}
-              level={3600}
+              level={45}
               selectAnswer={selectAnswer}
               stop={stop}
             />
           </div>
         </div>
-
-        
       </div>
 
       <div className="h-[75%]">
@@ -237,7 +236,7 @@ export default function Board({
                     ? className
                     : "min-w-[calc(50%-2rem)] flex-1 p-2 m-1 md:p-5 md:m-4" +
                       " bg-gradient-to-b from-[#0a0122] to-[#1b063d] border border-white rounded-lg" +
-                      " font-light text-lg cursor-pointer hover:bg-mediumblue "
+                      " font-light text-lg cursor-pointer hover:from-purple-600 hover:to-indigo-600 "
                 }
                 onClick={() => !selectedAnswer && handleClick(a)}
               >
@@ -245,7 +244,7 @@ export default function Board({
                   {String.fromCharCode(65 + index)}:
                 </span>{" "}
                 &emsp; <span>{a.answer}</span>
-                {a.selected && <span>&nbsp;&lt; Ami</span>}
+                {a.friendSelected && <span className="text-orange-500 font-extrabold">&nbsp;&lt; Ami</span>}
                 {a.percentage && <span>&nbsp;({a.percentage}%)</span>}
               </div>
             ))}
