@@ -191,6 +191,22 @@ export default function Admin() {
     }
   };
 
+  const [copiedQuestion, setCopiedQuestion] = useState(null);
+  useEffect(() => {
+    if (copiedQuestion) {
+      navigator.clipboard.writeText(copiedQuestion).then(
+        () => {
+          console.log("Question copiée !");
+        },
+        (error) => {
+          console.error("Erreur lors de la copie de la question :", error);
+        }
+      );
+      // Réinitialisez l'état de la question copiée après l'avoir copiée
+      setCopiedQuestion(null);
+    }
+  }, [copiedQuestion]);
+
   return (
     <>
       <div className="text-center h-full bg-blue-900 text-white">
@@ -248,11 +264,28 @@ export default function Admin() {
           <>
             <h2>Il y a {questions.length} questions</h2>
             {questions.map((question) => (
-              <div key={question.id} className="mb-4">
+              <div key={question.id} className=" m-4">
                 <div>
-                  <h3 className="text-lg font-bold mb-2">
-                    {question.question}
-                  </h3>
+                  <div className="flex flex-wrap gap-2 m-2">
+                    <span
+                      className={
+                        question.checked ? "bg-green-500" : "bg-orange-500"
+                      }
+                    >
+                      {question.checked ? "Vérifié" : "Non vérifié"}
+                    </span>
+                    <h3 className="text-lg font-bold mb-2 text-white">
+                      {question.question}
+                    </h3>
+                    <button
+                    className="p-2 bg-blue-400 rounded hover:to-blue-700"
+                      onClick={() => {
+                        setCopiedQuestion(question.question);
+                      }}
+                    >
+                      Copier la question
+                    </button>
+                  </div>
                   <ul>
                     {question.answers.map((answer, answerIndex) => (
                       <li

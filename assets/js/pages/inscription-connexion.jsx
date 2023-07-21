@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 import FetchApi from "../services/fetchApi";
+import { useNavigate } from "react-router-dom";
+import AuthApi from "../services/authApi";
 
-export default function InscriptionConnexion() {
+export default function InscriptionConnexion({ setIsAuthenticated }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -28,7 +31,9 @@ export default function InscriptionConnexion() {
           timer: 1500,
         });
         if (!isRegistering) {
-          location.href="/compte";
+          const isAuthenticated = await AuthApi.isAuthenticated();
+          setIsAuthenticated(isAuthenticated);
+          navigate("/compte");
         }
         
       } else {

@@ -2,10 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\QuestionsRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\QuestionsRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[ORM\Entity(repositoryClass: QuestionsRepository::class)]
 class Questions
@@ -24,10 +25,17 @@ class Questions
     #[ORM\ManyToMany(targetEntity: Theme::class, mappedBy: 'questionId')]
     private Collection $themes;
 
+    #[ORM\Column]
+    private ?bool $checked = null;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
+
     public function __construct()
     {
         $this->answers = new ArrayCollection();
         $this->themes = new ArrayCollection();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -104,5 +112,28 @@ class Questions
         return $this;
     }
 
+    public function isChecked(): ?bool
+    {
+        return $this->checked;
+    }
+
+    public function setChecked(bool $checked): static
+    {
+        $this->checked = $checked;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
 
 }

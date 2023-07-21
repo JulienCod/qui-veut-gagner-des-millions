@@ -92,6 +92,7 @@ class QuestionsController extends AbstractController
                 $question = new Questions();
                 $question->setQuestion($questionData['question']);
                 $question->addTheme($theme);
+                $question->setChecked(false);
 
                 // valider les données saisi pour la question
                 $validationErrors = $this->validator->validate($question);
@@ -205,6 +206,7 @@ class QuestionsController extends AbstractController
 
         // Modification de la question
         $question->setQuestion($data['question']);
+        $question->setChecked($data['checked']);
 
         $validationErrors = $this->validator->validate($question);
         if (count($validationErrors) > 0) {

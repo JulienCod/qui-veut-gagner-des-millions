@@ -4,7 +4,7 @@ import AuthApi from "../services/authApi";
 import Swal from "sweetalert2";
 import FetchApi from "../services/fetchApi";
 
-export default function Game({ onGameActiveChange }) {
+export default function Game({ setIsGameActive }) {
   const [start, setStart] = useState(false);
   const [timeOut, setTimeOut] = useState(false);
   const [questionNumber, setQuestionNumber] = useState(1);
@@ -12,6 +12,7 @@ export default function Game({ onGameActiveChange }) {
   const [readyGame, setReadyGame] = useState(false);
   const [data, setData] = useState([]);
   const [dataTheme, setDataTheme] = useState([]);
+  const [isMoneyPyramidVisible, setIsMoneyPyramidVisible] = useState(true);
   const [currentAccount] = useState(
     JSON.parse(localStorage.getItem("currentAccount"))
   );
@@ -19,7 +20,6 @@ export default function Game({ onGameActiveChange }) {
   const [choiceThemeId, setChoiceThemeId] = useState(null);
   const [correctAnswerCount, setCorrectAnswerCount] = useState(0);
   const URLGETALLACCOUNTID = `api/theme/game/getAll?accountId=${currentAccount.id}`;
-
 
   useEffect(() => {
     getDataTheme();
@@ -103,11 +103,11 @@ export default function Game({ onGameActiveChange }) {
   ) => {
     try {
       const response = await FetchApi("/api/games/save", "POST", {
-        "accountId": accountId,
-        "themeId": themeId,
-        "correctAnswersCount": correctAnswersCount,
-        "usedJokersCount": usedJokersCount,
-        "earnedAmount": earnedAmount,
+        accountId: accountId,
+        themeId: themeId,
+        correctAnswersCount: correctAnswersCount,
+        usedJokersCount: usedJokersCount,
+        earnedAmount: earnedAmount,
       });
       if (!response.response.ok) {
         throw new Error(response.data.message);
@@ -145,14 +145,22 @@ export default function Game({ onGameActiveChange }) {
   }, [questionNumber, moneyPyramid]);
 
   const handleGameActiveChange = () => {
-    onGameActiveChange(true);
+    setIsGameActive(true); // TODO : changer la valeur après changement css
     setStart(true);
+  };
+
+  useEffect(() => {
+    setIsGameActive(false);
+  }, [timeOut]);
+
+  const toggleMoneyPyramid = () => {
+    setIsMoneyPyramidVisible((prev) => !prev);
   };
   return (
     <section className="h-[100%] flex text-white">
       {start ? (
         <>
-          <div className="w-3/4 bg-gradient-to-b from-transparent to-black bg-no-repeat bg-cover bg-center flex flex-col">
+          <div className={isMoneyPyramidVisible ? "w-4/6 bg-gradient-to-b from-transparent to-black bg-no-repeat bg-cover bg-center flex flex-col" : "w-full bg-gradient-to-b from-transparent to-black bg-no-repeat bg-cover bg-center flex flex-col"}>
             {timeOut ? (
               <h1 className="relative inset-0 m-auto">
                 Vous avez gagné: {earned} <strong>€</strong>
@@ -170,7 +178,35 @@ export default function Game({ onGameActiveChange }) {
               </div>
             )}
           </div>
-          <div className="w-1/4 bg-[#04001b] flex items-center justify-center border-l-4 border-white">
+          {isMoneyPyramidVisible ?  (
+            <div className="w-2/6 bg-[#04001b] flex items-center justify-center border-l-4 border-white">
+              <ul className="p-[4px] md:p-[20px] list-none w-full">
+                {moneyPyramid.map((m) => (
+                  <li
+                    key={m.id}
+                    className={`${
+                      questionNumber === m.id
+                        ? "text-black bg-orange-500"
+                        : m.bearing
+                        ? "text-white"
+                        : "text-orange-500"
+                    } flex items-center p-[5px] rounded-md`}
+                  >
+                    <span className="w-[15%] md:w-[30%] text-sm md:text-base font-thin">
+                      {m.id}
+                    </span>
+                    <span className=" text-sm md:text-lg font-light">{m.amount} €</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          <button
+            onClick={toggleMoneyPyramid}
+            className="fixed top-4 right-4 p-2 bg-blue-500 text-white rounded-md"
+          >
+          </button>
+          {/* <div className="w-1/4 bg-[#04001b] flex items-center justify-center border-l-4 border-white">
             <ul className="p-[20px] list-none w-full">
               {moneyPyramid.map((m) => (
                 <li
@@ -188,7 +224,7 @@ export default function Game({ onGameActiveChange }) {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
         </>
       ) : (
         <div className="p-4 mx-auto">

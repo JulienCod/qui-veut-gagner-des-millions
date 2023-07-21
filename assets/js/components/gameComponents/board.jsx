@@ -48,7 +48,7 @@ export default function Board({
   const handleClick = (a) => {
     setSelectedAnswer(a);
     setClassName(
-      "min-w-[calc(50%-2rem)] flex-1 p-5 m-4 bg-gradient-to-b from-purple-900" +
+      "min-w-[calc(50%-2rem)] flex-1 p-2 m-1 md:p-5 md:m-4 bg-gradient-to-b from-purple-900" +
         " to-indigo-900 border border-white rounded-lg font-light text-lg cursor-pointer transition-colors" +
         " duration-300 hover:bg-blue-500 active:bg-blue-500"
     );
@@ -57,12 +57,12 @@ export default function Board({
     delay(3000, () => {
       setClassName(
         a.correct
-          ? "animate-correct min-w-[calc(50%-2rem)] flex-1 p-5 m-4 " +
+          ? "animate-correct min-w-[calc(50%-2rem)] flex-1 p-2 m-1 md:p-5 md:m-4" +
               " bg-gradient-to-b from-[#0a0122] to-[#1b063d] border border-white rounded-lg" +
-              " font-light text-lg cursor-pointer hover:bg-mediumblue"
-          : "animate-wrong min-w-[calc(50%-2rem)] flex-1 p-5 m-4 " +
+              " font-light text-lg cursor-pointer hover:bg-mediumblue "
+          : "animate-wrong min-w-[calc(50%-2rem)] flex-1 p-2 m-1 md:p-5 md:m-4" +
               " bg-gradient-to-b from-[#0a0122] to-[#1b063d] border border-white rounded-lg" +
-              " font-light text-lg cursor-pointer hover:bg-mediumblue"
+              " font-light text-lg cursor-pointer hover:bg-mediumblue "
       );
     });
 
@@ -70,11 +70,11 @@ export default function Board({
       if (a.correct) {
         correctAnswer();
         stop();
-        setCorrectAnswersCount(correctAnswersCount+1);
+        setCorrectAnswersCount(correctAnswersCount + 1);
         delay(1000, () => {
           setQuestionNumber((prev) => prev + 1);
           if (questionNumber === 15) {
-            setCorrectAnswerCount(correctAnswersCount+1);
+            setCorrectAnswerCount(correctAnswersCount + 1);
             setTimeOut(true);
           }
           setSelectedAnswer(null);
@@ -110,7 +110,7 @@ export default function Board({
         fiftyFiftyUsed: true,
       }));
       setFiftyFiftyUsed(true);
-      setUsejokercount(useJokerscount+1);
+      setUsejokercount(useJokerscount + 1);
     }
   };
 
@@ -128,7 +128,7 @@ export default function Board({
         });
       });
       setCallAFriendUsed(true);
-      setUsejokercount(useJokerscount+1);
+      setUsejokercount(useJokerscount + 1);
     }
   };
 
@@ -167,75 +167,75 @@ export default function Board({
       setSelectedAnswer(null);
       setSelectAnswer(false);
       setVoteOfPublicUsed(true);
-      setUsejokercount(useJokerscount+1);
+      setUsejokercount(useJokerscount + 1);
     }
   };
-  
+
   return (
     <>
-      <div className="relative h-1/2 flex flex-col md:flex-row md:items-center md:justify-between">
-        <div className="w-full md:w-auto md:flex-1 md:pr-4">
-          <div className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center absolute bottom-[70px] left-[80px] text-3xl font-bold">
+      <div className="h-[25%] flex justify-center flex-col gap-2 md:gap-4 md:flex-row-reverse md:items-center md:justify-between">
+        <div className="w-full md:w-auto md:flex-1 md:flex md:justify-end md:items-center">
+          <div className="flex gap-1 justify-center md:flex-row md:gap-2">
+            {!fiftyFiftyUsed && (
+              <img
+                onClick={applyFiftyFifty}
+                disabled={fiftyFiftyUsed}
+                className="w-[30%] max-w-[200px] hover:cursor-pointer"
+                src="/images/jokers/50-50.webp"
+                alt=""
+              />
+            )}
+            {!callAFriendUsed && (
+              <img
+                onClick={callAFriend}
+                disabled={callAFriendUsed}
+                className="w-[30%] max-w-[200px] hover:cursor-pointer"
+                src="/images/jokers/appel-ami.webp"
+                alt=""
+              />
+            )}
+            {!voteOfPublicUsed && (
+              <img
+                onClick={voteOfPublic}
+                disabled={voteOfPublicUsed}
+                className="w-[30%] max-w-[200px] hover:cursor-pointer"
+                src="/images/jokers/vote-du-public.webp"
+                alt=""
+              />
+            )}
+          </div>
+        </div>
+        <div className="w-full flex justify-center md:w-auto md:flex-1 md:pr-4">
+          <div className="w-20 h-20 text-3xl rounded-full border-4 border-white flex items-center justify-center font-bold">
             <Timer
               setTimeOut={setTimeOut}
               questionNumber={questionNumber}
-              level={45}
+              level={3600}
               selectAnswer={selectAnswer}
               stop={stop}
             />
           </div>
         </div>
 
-        {/* Boutons jokers à droite (occupera 2/3 de l'espace en version mobile) */}
-        <div className="w-full md:w-auto md:flex-1 md:flex md:justify-end md:items-center">
-          <div className="flex flex-col md:flex-row md:gap-2">
-            {!fiftyFiftyUsed && (
-              <button
-                onClick={applyFiftyFifty}
-                disabled={fiftyFiftyUsed}
-                className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
-              >
-                50/50
-              </button>
-            )}
-            {!callAFriendUsed && (
-              <button
-                onClick={callAFriend}
-                disabled={callAFriendUsed}
-                className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mt-2 md:mt-0"
-              >
-                Appel à un ami
-              </button>
-            )}
-            {!voteOfPublicUsed && (
-              <button
-                onClick={voteOfPublic}
-                disabled={voteOfPublicUsed}
-                className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mt-2 md:mt-0"
-              >
-                Vote du public
-              </button>
-            )}
-          </div>
-        </div>
+        
       </div>
 
-      <div className="h-1/2">
-        <div className="h-full flex flex-col items-center justify-around gap-5">
+      <div className="h-[75%]">
+        <div className="h-full flex flex-col items-center justify-around gap-2 md:gap-5">
           <div
-            className="w-80 bg-gradient-to-b  from-[#10053e] to-[#020009] text-center p-5 rounded-lg
-                    border-2 border-white text-xl"
+            className="m-1 p-2 min-w-[calc(50%-2rem)] md:w-80 bg-gradient-to-b  from-[#10053e] to-[#020009] text-center md:p-5 rounded-lg
+                    border-2 border-white text-lg md:text-xl"
           >
             {question?.question}
           </div>
-          <div className="w-full flex justify-center flex-wrap ">
+          <div className="w-full flex-col flex justify-center flex-wrap md:flex-row">
             {question?.answers.map((a, index) => (
               <div
                 key={index}
                 className={
                   selectedAnswer === a
                     ? className
-                    : "min-w-[calc(50%-2rem)] flex-1 p-5 m-4 " +
+                    : "min-w-[calc(50%-2rem)] flex-1 p-2 m-1 md:p-5 md:m-4" +
                       " bg-gradient-to-b from-[#0a0122] to-[#1b063d] border border-white rounded-lg" +
                       " font-light text-lg cursor-pointer hover:bg-mediumblue "
                 }

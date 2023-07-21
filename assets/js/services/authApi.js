@@ -12,7 +12,7 @@ class AuthApi {
 
   static async isAuthenticated() {
     try {
-      const data = await FetchApi("/api/users/me", "GET", false);
+      const data = await FetchApi("/api/users/me", "GET");
 
       if (data.response.ok) {
         localStorage.setItem("user", JSON.stringify(data.data));
@@ -31,7 +31,7 @@ class AuthApi {
 
   static async logout() {
     try {
-      const response = await FetchApi("/api/logout", "POST", false);
+      const response = await FetchApi("/api/logout", "POST");
 
       if (!response.response.ok) {
         console.log('problem logging out')
