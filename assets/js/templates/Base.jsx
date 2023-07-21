@@ -8,13 +8,15 @@ import Footer from "../components/footer/Footer";
 export default function Base({
   isGameActive,
 }) {
+  const bg = "/images/bg.jpg";
   return (
     <>
       <Header
         isGameActive={isGameActive}
       />
       <main
-        className={isGameActive ? "h-[100%] container-2xl" : "h-[calc(100%-65px)] container-2xl"}
+      style={isGameActive? { backgroundImage: `url(${bg})` }: null}
+        className={isGameActive ? "h-[100vh]  container-2xl" : "bg-gradient-to-b from-purple-900 to-indigo-900 min-h-[calc(100vh-72px-52px)] container-2xl"}
       >
         <Outlet />
       </main>

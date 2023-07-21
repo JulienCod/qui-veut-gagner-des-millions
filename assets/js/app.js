@@ -70,7 +70,7 @@ function Main() {
               <Route path="/compte/profil/:id" element={<Profile />} />
               <Route
                 path="/jeu"
-                element={<Game setIsGameActive={setIsGameActive} />}
+                element={<Game setIsGameActive={setIsGameActive} isGameActive={isGameActive} />}
               />
             </>
           ) : (

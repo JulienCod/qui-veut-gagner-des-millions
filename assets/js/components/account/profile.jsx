@@ -9,6 +9,8 @@ export default function Profile() {
   const [profile, setProfile] = useState();
   const [viewthemes, setViewThemes] = useState(true);
   const [viewStat, setViewStat] = useState(false);
+  const cssButton ="bg-[#4E6095] hover:bg-[#C6598E]  text-gray-200 font-bold py-2 px-4 border-white rounded-lg focus:outline-none focus:shadow-outline"
+
 
   useEffect(() => {
     getProfile();
@@ -65,13 +67,13 @@ export default function Profile() {
     <>
       {profile && (
         <div className="p-4">
-          <div className="flex justify-around flex-wrap text-white">
+          <div className="flex flex-col justify-around s:flex-row gap-4 text-white pb-4 items-center">
             <h2 className="text-2xl font-bold">Profil de {profile.name}</h2>
             <p className="text-lg">Argent disponible : {profile.wallet} €</p>
           </div>
-          <div className="flex justify-center gap-4 flex-wrap">
-            <button className="bg-gray-500 text-white p-4 rounded hover:bg-gray-700" onClick={() => {setViewThemes(true), setViewStat(false)}}>Voir les thèmes</button>
-            <button className="bg-gray-500 text-white p-4 rounded hover:bg-gray-700" onClick={() => {setViewStat(true), setViewThemes(false)}}>Voir les statistiques</button>
+          <div className="flex justify-center gap-4 flex-wrap ">
+            <button className={cssButton} onClick={() => {setViewThemes(true), setViewStat(false)}}>Voir les thèmes</button>
+            <button className={cssButton} onClick={() => {setViewStat(true), setViewThemes(false)}}>Voir les statistiques</button>
           </div>
 
           {viewthemes && (
@@ -94,7 +96,7 @@ export default function Profile() {
                       }}
                       className={
                         profile.wallet > theme.value
-                          ? `bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline`
+                          ? cssButton
                           : `bg-gray-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline`
                       }
                       disabled={profile.wallet < theme.value}
