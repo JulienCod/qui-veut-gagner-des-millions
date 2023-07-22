@@ -3,17 +3,18 @@
 namespace App\Controller;
 
 use App\Entity\Games;
-use App\Repository\AccountRepository;
+use App\Entity\Theme;
+use App\Repository\UserRepository;
 use App\Repository\GamesRepository;
 use App\Repository\ThemeRepository;
-use App\Repository\UserRepository;
+use App\Repository\AccountRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/api/games', name: 'api_games_')]
 class GamesController extends AbstractController
@@ -143,6 +144,33 @@ class GamesController extends AbstractController
         if($account->getUser()->getId() != $user->getId()) {
             return new JsonResponse(['message' => 'Vous n\'avez pas accès à ce compte'], JsonResponse::HTTP_FORBIDDEN);
         }
+
+        // récupération des parties du compte en base de données
+        $dataGames = $account->getGames()->toArray();
+
+        // création d'un tableau vide pour enregistrer les données des parties du compte
+        $games = [];
+
+        // boucle sur chaque partie pour formater les données 
+        foreach ($dataGames as $dataGame) {
+            $game = [
+                "id" => $dataGame->getId(),
+                "correct_answers_count" => $dataGame->getCorrectAnswersCount(),
+                "gains" => $dataGame->getGain(),
+                "used_jokers_count" => $dataGame->getUsedJokersCount(),
+                "date" => $dataGame->getCreatedAt()->format('Y-m-d H:i:s'),
+            ];
+            // Récupérez les informations du thème associé à chaque partie
+            $theme = $dataGame->getThemeId();
+            if ($theme instanceof Theme) {
+                $game["theme"] = $theme->toArray();
+            }
+            $games[] = $game;
+        }
+
+        return new JsonResponse($games, JsonResponse::HTTP_OK);
+
+
     }
     #[Route('/admin/getAll', name:'admin_getAll', methods:['GET'])]
     public function adminGetAll(): JsonResponse

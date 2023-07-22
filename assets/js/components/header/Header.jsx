@@ -58,7 +58,7 @@ export default function Header({ isGameActive }) {
   return isGameActive ? null : (
    
     <header className="bg-gradient-to-b  from-[#10053e] to-[#020009]  text-gray-200 ">
-      <nav className=" border-gray-200 ">
+      <nav className=" border-gray-200 container-2xl ">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
           <Link to="/" className="flex items-center">
             <img

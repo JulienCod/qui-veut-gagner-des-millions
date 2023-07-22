@@ -15,6 +15,7 @@ export default function Footer({ isGameActive }) {
           réalisé par{" "}
           <a
             href="https://www.julien-webandco.fr"
+            target="_blank"
             className="text-gray-200 font-bold hover:underline hover:text-[#C6598E]"
           >
             Julien Web&Co

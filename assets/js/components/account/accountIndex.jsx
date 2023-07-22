@@ -117,7 +117,7 @@ export default function AccountIndex() {
       <div>
         <h1 className="text-center text-gray-200 mb-4">Gestion des comptes utilisateurs</h1>
       </div>
-      <div className="flex justify-center gap-4">
+      <div className="flex justify-center gap-4 pb-8">
         <button
           onClick={() => {
             displayView();
@@ -136,7 +136,7 @@ export default function AccountIndex() {
         </button>
       </div>
       {createAccount && (
-        <form onSubmit={handleSubmit} className="w-full max-w-sm">
+        <form onSubmit={handleSubmit} className="w-full max-w-sm m-auto">
           <div className="mb-4">
             <label htmlFor="account" className="block">
               Nom du profil

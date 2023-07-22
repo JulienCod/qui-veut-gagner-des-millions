@@ -226,7 +226,7 @@ class ThemeController extends AbstractController
                 'name' => $data->getName(),
                 'value' => $data->getValue(),
                 'actif' => $account->getThemeId()->contains($data),
-                'date' => $data->getCreatedAt('')
+                'date' => $data->getCreatedAt()->format('Y-m-d H:i:s'),
             ];
         }
         return new JsonResponse(['themes' => $themes], JsonResponse::HTTP_OK);
