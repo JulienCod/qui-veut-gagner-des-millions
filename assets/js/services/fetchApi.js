@@ -13,14 +13,17 @@ const FetchApi = async (url, method,  datas = null) => {
         options.body = JSON.stringify(datas); 
     }
     const response = await fetch(url, options);
+    const data = await response.json();
     if (response.ok) {
-      const data = await response.json();
       return { response, data };
     }
     if (response.status === 401){
       localStorage.removeItem('user');
       localStorage.removeItem('currentAccount');
       return {response};
+    }else{
+      return { response, data };
+
     }
   } catch (error) {
     console.error(error.message);

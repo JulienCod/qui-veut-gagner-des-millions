@@ -42,6 +42,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Account::class, orphanRemoval: true)]
     private Collection $accounts;
 
+    #[ORM\Column]
+    private ?bool $Is_verified = null;
+
     public function __construct()
     {
         $this->games = new ArrayCollection();
@@ -164,6 +167,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $account->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isIsVerified(): ?bool
+    {
+        return $this->Is_verified;
+    }
+
+    public function setIsVerified(bool $Is_verified): static
+    {
+        $this->Is_verified = $Is_verified;
 
         return $this;
     }

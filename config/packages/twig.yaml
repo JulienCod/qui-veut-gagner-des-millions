@@ -1,4 +1,6 @@
 twig:
+    globals:
+        app_react_app_url: '%app.react_app_url%'
     default_path: '%kernel.project_dir%/templates'
 
 when@test:
