@@ -1,5 +1,4 @@
 import React from "react";
-
 export default function Accueil() {
     const facebookPageLink = "https://www.facebook.com/profile.php?id=100089078507150";
     const instagramAccountLink="https://www.instagram.com/julienwebandco/";

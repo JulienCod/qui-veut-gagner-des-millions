@@ -206,7 +206,7 @@ class QuestionsController extends AbstractController
 
         // Modification de la question
         $question->setQuestion($data['question']);
-        $question->setChecked($data['checked']);
+        // $question->setChecked($data['checked']);
 
         $validationErrors = $this->validator->validate($question);
         if (count($validationErrors) > 0) {

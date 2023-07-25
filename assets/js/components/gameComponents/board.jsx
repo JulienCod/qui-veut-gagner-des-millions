@@ -177,7 +177,7 @@ export default function Board({
       <div className="h-[25%] flex justify-center flex-col gap-2 md:gap-4 md:flex-row-reverse md:items-center md:justify-between">
         <div className="w-full md:w-auto md:flex-1 md:flex md:justify-end md:items-center">
           <div className="flex gap-1 justify-center md:flex-row md:gap-2">
-            {!fiftyFiftyUsed && (
+            {/* {!fiftyFiftyUsed && ( */}
               <img
                 onClick={applyFiftyFifty}
                 disabled={fiftyFiftyUsed}
@@ -185,8 +185,8 @@ export default function Board({
                 src="/images/jokers/50-50.webp"
                 alt=""
               />
-            )}
-            {!callAFriendUsed && (
+            {/* )} */}
+            {/* {!callAFriendUsed && ( */}
               <img
                 onClick={callAFriend}
                 disabled={callAFriendUsed}
@@ -194,8 +194,8 @@ export default function Board({
                 src="/images/jokers/appel-ami.webp"
                 alt=""
               />
-            )}
-            {!voteOfPublicUsed && (
+            {/* )} */}
+            {/* {!voteOfPublicUsed && ( */}
               <img
                 onClick={voteOfPublic}
                 disabled={voteOfPublicUsed}
@@ -203,7 +203,7 @@ export default function Board({
                 src="/images/jokers/vote-du-public.webp"
                 alt=""
               />
-            )}
+            {/* )} */}
           </div>
         </div>
         <div className="w-full flex justify-center md:w-auto md:flex-1 md:pr-4">

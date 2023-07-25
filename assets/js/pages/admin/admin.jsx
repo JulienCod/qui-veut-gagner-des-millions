@@ -302,12 +302,13 @@ export default function Admin() {
                   </ul>
                   <div className="mt-2">
                     <button
-                      className="mr-2"
+                      className="bg-blue-500 text-white p-2 m-2"
                       onClick={() => openModal(question)}
-                    >
+                      >
                       Modifier
                     </button>
                     <button
+                      className="bg-blue-500 text-white p-2 m-2"
                       onClick={async () => {
                         await deleteQuestion(question.id);
                       }}
