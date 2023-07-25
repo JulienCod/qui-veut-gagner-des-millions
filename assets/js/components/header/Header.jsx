@@ -123,7 +123,7 @@ export default function Header({ isGameActive }) {
                 className={cssLink}
                 onClick={toggleMenu}
                   
-                  to="#"
+                  to="/contact"
                   >
                   Contact
                 </Link>

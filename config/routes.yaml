@@ -15,3 +15,6 @@ api_logout:
     path: /api/logout
     controller: App\Controller\AuthController::logout
     methods: [POST]
+send_mail:
+    path: /send-mail
+    controller: App\Controller\Service\MailController::sendMail

@@ -17,6 +17,9 @@ import Game from "./components/game";
 import Admin from "./pages/admin/admin";
 import AccountIndex from "./components/account/accountIndex";
 import Profile from "./components/account/profile";
+import VerifUser from "./components/users/verifUser";
+import OubliPass from "./components/users/oubliPass";
+import Contact from "./components/contact/contact";
 
 function Main() {
   const { isAuthenticated, setIsAuthenticated } = useAuthContext();
@@ -59,6 +62,9 @@ function Main() {
           }
         >
           <Route index element={<Accueil />} />
+          <Route path="/verif/:token" element={<VerifUser />} />
+          <Route path="/oubli-pass/:token" element={<OubliPass />} />
+          <Route path="/contact" element={<Contact />} />
           {admin ? (
             <Route path="/admin" element={<Admin />} />
           ) : (
